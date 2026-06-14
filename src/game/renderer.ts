@@ -24,27 +24,27 @@ export function preloadImages(): Promise<void> {
 
     floorImg = new Image();
     floorImg.onload = check; floorImg.onerror = check;
-    floorImg.src = "/images/floor_v2.jpg";
+    floorImg.src = import.meta.env.BASE_URL + "images/floor_v2.jpg";
 
     wallImg = new Image();
     wallImg.onload = check; wallImg.onerror = check;
-    wallImg.src = "/images/wall_v2.jpg";
+    wallImg.src = import.meta.env.BASE_URL + "images/wall_v2.jpg";
 
     swordImg = new Image();
     swordImg.onload = check; swordImg.onerror = check;
-    swordImg.src = "/images/sword_effect.png";
+    swordImg.src = import.meta.env.BASE_URL + "images/sword_effect.png";
 
     bloodImg = new Image();
     bloodImg.onload = check; bloodImg.onerror = check;
-    bloodImg.src = "/images/blood_particle.png";
+    bloodImg.src = import.meta.env.BASE_URL + "images/blood_particle.png";
 
     onboardingClassesImg = new Image();
     onboardingClassesImg.onload = check; onboardingClassesImg.onerror = check;
-    onboardingClassesImg.src = "/images/onboarding_classes.jpg";
+    onboardingClassesImg.src = import.meta.env.BASE_URL + "images/onboarding_classes.jpg";
 
     onboardingItemsImg = new Image();
     onboardingItemsImg.onload = check; onboardingItemsImg.onerror = check;
-    onboardingItemsImg.src = "/images/onboarding_items.jpg";
+    onboardingItemsImg.src = import.meta.env.BASE_URL + "images/onboarding_items.jpg";
   });
 }
 
