@@ -1462,7 +1462,7 @@ export function drawOnboarding(ctx: CanvasRenderingContext2D, canvasW: number, c
 
   const classImg = state.heroClass === "ranger" ? onboardingClassesImg : state.heroClass === "filou" ? onboardingClassesImg : onboardingClassesImg;
   const img = step === 1 ? onboardingItemsImg : classImg;
-  if (img) drawCoverImage(ctx, img, px + 18, py + 18, panelW * 0.42, panelH - 36);
+  if (img) drawContainImage(ctx, img, px + 18, py + 18, panelW * 0.42, panelH - 36);
 
   const tx = px + panelW * 0.48;
   const ty = py + 45;
@@ -1572,21 +1572,21 @@ export function drawOnboarding(ctx: CanvasRenderingContext2D, canvasW: number, c
   ctx.font = `${Math.min(canvasW * 0.021, 18)}px 'Segoe UI', system-ui, sans-serif`;
   ctx.fillStyle = "#e8dcc6";
   page.lines.forEach((line, i) => {
-    if (line) ctx.fillText(line, tx, ty + 58 + i * 36);
+    if (line) ctx.fillText(line, tx, ty + 48 + i * 32);
   });
 
   const classLabel = { guerrier: "Guerrier", ranger: "Ranger", filou: "Filou" }[state.heroClass];
   const classColor = { guerrier: "#ff6644", ranger: "#44cc66", filou: "#bb66ff" }[state.heroClass];
   ctx.fillStyle = "rgba(255,210,80,0.14)";
-  ctx.fillRect(tx, py + panelH - 135, panelW * 0.45, 70);
+  ctx.fillRect(tx, py + panelH - 110, panelW * 0.45, 60);
   ctx.strokeStyle = "rgba(255,210,80,0.38)";
-  ctx.strokeRect(tx, py + panelH - 135, panelW * 0.45, 70);
+  ctx.strokeRect(tx, py + panelH - 110, panelW * 0.45, 60);
   ctx.fillStyle = classColor;
   ctx.font = `bold ${Math.min(canvasW * 0.02, 17)}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText(`Héros sélectionné: ${classLabel}`, tx + 18, py + panelH - 118);
+  ctx.fillText(`Héros sélectionné: ${classLabel}`, tx + 18, py + panelH - 93);
   ctx.fillStyle = "#cfc6b6";
   ctx.font = `${Math.min(canvasW * 0.017, 13)}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText(step === 2 ? "Entrée / Espace: entrer dans le donjon" : "Entrée / Espace: continuer · Retour arrière: précédent · 1/2/3: changer classe", tx + 18, py + panelH - 88);
+  ctx.fillText(step === 2 ? "Entrée / Espace: entrer dans le donjon" : "Entrée / Espace: continuer · Retour arrière: précédent · 1/2/3: changer classe", tx + 18, py + panelH - 68);
 
   ctx.textAlign = "center";
   for (let i = 0; i < 3; i++) {
@@ -1648,17 +1648,17 @@ export function drawPauseOverlay(ctx: CanvasRenderingContext2D, canvasW: number,
   ctx.fillText("P ou Échap pour reprendre", canvasW / 2, y + h - 58);
 }
 
-function drawCoverImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number): void {
-  const scale = Math.max(w / img.width, h / img.height);
-  const sw = w / scale;
-  const sh = h / scale;
-  const sx = (img.width - sw) / 2;
-  const sy = (img.height - sh) / 2;
+function drawContainImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number): void {
+  const scale = Math.min(w / img.width, h / img.height);
+  const dw = img.width * scale;
+  const dh = img.height * scale;
+  const dx = x + (w - dw) / 2;
+  const dy = y + (h - dh) / 2;
   ctx.save();
   ctx.beginPath();
   ctx.rect(x, y, w, h);
   ctx.clip();
-  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+  ctx.drawImage(img, dx, dy, dw, dh);
   ctx.fillStyle = "rgba(0,0,0,0.12)";
   ctx.fillRect(x, y, w, h);
   ctx.strokeStyle = "rgba(255,210,80,0.28)";
