@@ -1449,9 +1449,9 @@ export function drawOnboarding(ctx: CanvasRenderingContext2D, canvasW: number, c
 
   const cx = canvasW / 2;
   const panelW = Math.min(canvasW * 0.84, 920);
-  const panelH = Math.min(canvasH * 0.78, 620);
+  const panelH = Math.min(canvasH * 0.82, 660);
   const px = cx - panelW / 2;
-  const py = canvasH * 0.11;
+  const py = canvasH * 0.08;
   const step = state.onboardingStep;
 
   ctx.fillStyle = "rgba(18,14,28,0.92)";
@@ -1460,14 +1460,22 @@ export function drawOnboarding(ctx: CanvasRenderingContext2D, canvasW: number, c
   ctx.lineWidth = 1.5;
   ctx.strokeRect(px, py, panelW, panelH);
 
-  const classImg = state.heroClass === "ranger" ? onboardingClassesImg : state.heroClass === "filou" ? onboardingClassesImg : onboardingClassesImg;
+  // ── IMAGE (top, contained, landscape aspect) ──
+  const classImg = onboardingClassesImg;
   const img = step === 1 ? onboardingItemsImg : classImg;
-  if (img) drawContainImage(ctx, img, px + 18, py + 18, panelW * 0.42, panelH - 36);
+  const imgX = px + 24;
+  const imgY = py + 20;
+  const imgW = panelW - 48;
+  const imgH = panelH * 0.38;
+  if (img) drawContainImage(ctx, img, imgX, imgY, imgW, imgH);
 
-  const tx = px + panelW * 0.48;
-  const ty = py + 45;
+  // ── TITLE (below image) ──
+  const tx = px + 36;
+  const titleY = imgY + imgH + 24;
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
+  ctx.fillStyle = "#ffd66b";
+  ctx.font = `bold ${Math.min(canvasW * 0.032, 28)}px 'Georgia', serif`;
 
   const classPages: Record<string, Array<{ title: string; lines: string[] }>> = {
     guerrier: [
@@ -1477,8 +1485,6 @@ export function drawOnboarding(ctx: CanvasRenderingContext2D, canvasW: number, c
           "L'épée large balaye les ennemis proches.",
           "Solide et endurant, il encaisse les coups.",
           "Idéal pour débuter — le plus résistant.",
-          "",
-          "Touches 1, 2, 3 pour changer de classe.",
         ],
       },
       {
@@ -1507,8 +1513,6 @@ export function drawOnboarding(ctx: CanvasRenderingContext2D, canvasW: number, c
           "Flèches rapides à distance, frappe précise.",
           "Double tir au NV3, flèche perçante au NV6.",
           "Garde tes distances — faible en mêlée.",
-          "",
-          "Touches 1, 2, 3 pour changer de classe.",
         ],
       },
       {
@@ -1537,8 +1541,6 @@ export function drawOnboarding(ctx: CanvasRenderingContext2D, canvasW: number, c
           "Deux dagues en éventail, vitesse fulgurante.",
           "Crit ×2.5 au NV6, cooldown réduit au NV10.",
           "Joue au plus près — le plus rapide, le plus fragile.",
-          "",
-          "Touches 1, 2, 3 pour changer de classe.",
         ],
       },
       {
@@ -1565,34 +1567,39 @@ export function drawOnboarding(ctx: CanvasRenderingContext2D, canvasW: number, c
   const pages = classPages[state.heroClass] ?? classPages.guerrier;
   const page = pages[step] ?? pages[0];
 
-  ctx.fillStyle = "#ffd66b";
-  ctx.font = `bold ${Math.min(canvasW * 0.032, 28)}px 'Georgia', serif`;
-  ctx.fillText(page.title, tx, ty);
+  ctx.fillText(page.title, tx, titleY);
 
+  // ── TEXT LINES ──
   ctx.font = `${Math.min(canvasW * 0.021, 18)}px 'Segoe UI', system-ui, sans-serif`;
   ctx.fillStyle = "#e8dcc6";
+  const lineStartY = titleY + 38;
   page.lines.forEach((line, i) => {
-    if (line) ctx.fillText(line, tx, ty + 48 + i * 32);
+    if (line) ctx.fillText(line, tx, lineStartY + i * 30);
   });
 
+  // ── HERO BOX (anchored at panel bottom) ──
   const classLabel = { guerrier: "Guerrier", ranger: "Ranger", filou: "Filou" }[state.heroClass];
   const classColor = { guerrier: "#ff6644", ranger: "#44cc66", filou: "#bb66ff" }[state.heroClass];
+  const boxH = 56;
+  const boxY = py + panelH - boxH - 14;
   ctx.fillStyle = "rgba(255,210,80,0.14)";
-  ctx.fillRect(tx, py + panelH - 110, panelW * 0.45, 60);
+  ctx.fillRect(tx, boxY, panelW * 0.92, boxH);
   ctx.strokeStyle = "rgba(255,210,80,0.38)";
-  ctx.strokeRect(tx, py + panelH - 110, panelW * 0.45, 60);
+  ctx.strokeRect(tx, boxY, panelW * 0.92, boxH);
   ctx.fillStyle = classColor;
   ctx.font = `bold ${Math.min(canvasW * 0.02, 17)}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText(`Héros sélectionné: ${classLabel}`, tx + 18, py + panelH - 93);
+  ctx.fillText(`Héros sélectionné: ${classLabel}`, tx + 18, boxY + 10);
   ctx.fillStyle = "#cfc6b6";
   ctx.font = `${Math.min(canvasW * 0.017, 13)}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText(step === 2 ? "Entrée / Espace: entrer dans le donjon" : "Entrée / Espace: continuer · Retour arrière: précédent · 1/2/3: changer classe", tx + 18, py + panelH - 68);
+  ctx.fillText(step === 2 ? "Entrée / Espace: entrer dans le donjon" : "Entrée / Espace: continuer · Retour: précédent · 1/2/3: classe", tx + 18, boxY + 32);
 
+  // ── PAGE DOTS ──
   ctx.textAlign = "center";
+  const dotsY = py + panelH + 20;
   for (let i = 0; i < 3; i++) {
     ctx.fillStyle = i === step ? "#ffd66b" : "rgba(255,255,255,0.22)";
     ctx.beginPath();
-    ctx.arc(cx - 20 + i * 20, py + panelH + 24, 5, 0, Math.PI * 2);
+    ctx.arc(cx - 20 + i * 20, dotsY, 5, 0, Math.PI * 2);
     ctx.fill();
   }
 }
@@ -1646,6 +1653,9 @@ export function drawPauseOverlay(ctx: CanvasRenderingContext2D, canvasW: number,
   ctx.fillStyle = "#9df5ff";
   ctx.font = `bold ${Math.min(canvasW * 0.02, 17)}px 'Segoe UI', system-ui, sans-serif`;
   ctx.fillText("P ou Échap pour reprendre", canvasW / 2, y + h - 58);
+  ctx.fillStyle = "rgba(255,100,100,0.8)";
+  ctx.font = `${Math.min(canvasW * 0.018, 15)}px 'Segoe UI', system-ui, sans-serif`;
+  ctx.fillText("H pour revenir au menu principal", canvasW / 2, y + h - 32);
 }
 
 function drawContainImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number): void {

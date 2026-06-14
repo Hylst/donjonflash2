@@ -10,6 +10,7 @@ import {
   advanceOnboarding,
   backOnboarding,
   togglePause,
+  returnToMenu,
 } from "./game/engine";
 import { GameAudio } from "./game/audio";
 import {
@@ -190,6 +191,10 @@ export default function App() {
 
       if (e.code === "KeyP" || e.code === "Escape") {
         togglePause(state);
+      }
+
+      if (e.code === "KeyH" && state.phase === "paused") {
+        returnToMenu(state);
       }
 
       if (e.code === "Backspace") {

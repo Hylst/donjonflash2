@@ -584,6 +584,12 @@ export function togglePause(state: GameState): void {
   }
 }
 
+export function returnToMenu(state: GameState): void {
+  const fresh = createInitialState();
+  Object.assign(state, fresh);
+  queueSound(state, "pause");
+}
+
 export function setHeroClass(state: GameState, heroClass: HeroClass): void {
   state.heroClass = heroClass;
   if (heroClass === "guerrier") {
