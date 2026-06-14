@@ -1288,104 +1288,147 @@ export function drawHUD(ctx: CanvasRenderingContext2D, state: GameState, canvasW
 // TITLE SCREEN
 // ──────────────────────────────────────────────
 export function drawTitle(ctx: CanvasRenderingContext2D, canvasW: number, canvasH: number, state: GameState): void {
-  // Background
-  ctx.fillStyle = "rgba(5,3,12,0.92)";
+  ctx.fillStyle = "rgba(5,3,12,0.94)";
   ctx.fillRect(0, 0, canvasW, canvasH);
 
   const cx = canvasW / 2;
   const t = performance.now() / 1000;
 
   // Decorative frame
-  ctx.strokeStyle = "rgba(180,130,40,0.2)";
+  ctx.strokeStyle = "rgba(180,130,40,0.15)";
   ctx.lineWidth = 1;
-  ctx.strokeRect(canvasW * 0.08, canvasH * 0.08, canvasW * 0.84, canvasH * 0.84);
-  ctx.strokeRect(canvasW * 0.1, canvasH * 0.1, canvasW * 0.8, canvasH * 0.8);
+  ctx.strokeRect(canvasW * 0.06, canvasH * 0.06, canvasW * 0.88, canvasH * 0.88);
 
-  // Floating particles in background
-  for (let i = 0; i < 20; i++) {
-    const px = (cx + Math.sin(t * 0.3 + i * 1.7) * canvasW * 0.3 + i * 47) % canvasW;
-    const py = (canvasH * 0.5 + Math.cos(t * 0.2 + i * 2.3) * canvasH * 0.3 + i * 31) % canvasH;
-    const pa = 0.1 + 0.1 * Math.sin(t + i);
+  // Floating particles
+  for (let i = 0; i < 15; i++) {
+    const px = (cx + Math.sin(t * 0.3 + i * 1.7) * canvasW * 0.35 + i * 47) % canvasW;
+    const py = (canvasH * 0.5 + Math.cos(t * 0.2 + i * 2.3) * canvasH * 0.35 + i * 31) % canvasH;
+    const pa = 0.08 + 0.08 * Math.sin(t + i);
     ctx.fillStyle = `rgba(200,150,50,${pa})`;
     ctx.beginPath();
-    ctx.arc(px, py, 2, 0, Math.PI * 2);
+    ctx.arc(px, py, 1.5, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  // Title glow
+  // ── TITLE ──
   ctx.save();
-  ctx.shadowColor = "rgba(255,200,0,0.6)";
-  ctx.shadowBlur = 30;
+  ctx.shadowColor = "rgba(255,200,0,0.5)";
+  ctx.shadowBlur = 24;
   ctx.fillStyle = "#ffd700";
-  ctx.font = `bold ${Math.min(canvasW * 0.075, 54)}px 'Georgia', serif`;
+  ctx.font = `bold ${Math.min(canvasW * 0.065, 48)}px 'Georgia', serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("⚔️ DONJON FLASH ⚔️", cx, canvasH * 0.22);
+  ctx.fillText("⚔️  DONJON FLASH  ⚔️", cx, canvasH * 0.1);
   ctx.restore();
 
-  // Subtitle
-  ctx.fillStyle = "#cc9966";
-  ctx.font = `${Math.min(canvasW * 0.028, 20)}px 'Georgia', serif`;
-  ctx.fillText("Action-RPG Donjon: salles, couloirs et labyrinthes", cx, canvasH * 0.22 + 52);
+  ctx.fillStyle = "#aa8844";
+  ctx.font = `italic ${Math.min(canvasW * 0.02, 14)}px 'Georgia', serif`;
+  ctx.fillText("Action-RPG tactique procedural", cx, canvasH * 0.1 + 30);
 
-  // Author credit
-  ctx.fillStyle = "rgba(150,130,80,0.7)";
-  ctx.font = `${Math.min(canvasW * 0.018, 13)}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText("Créé par Hylst — Geoffroy avec l'aide d'une IA", cx, canvasH * 0.22 + 75);
-
-  // Instructions panel
-  const panelY = canvasH * 0.38;
-  ctx.fillStyle = "rgba(20,15,30,0.8)";
-  ctx.fillRect(canvasW * 0.15, panelY, canvasW * 0.7, canvasH * 0.38);
-  ctx.strokeStyle = "rgba(180,140,60,0.3)";
-  ctx.lineWidth = 1;
-  ctx.strokeRect(canvasW * 0.15, panelY, canvasW * 0.7, canvasH * 0.38);
-
-  const heroChoices = [
-    { key: "1", id: "guerrier", label: "Guerrier", detail: "épée, vie haute" },
-    { key: "2", id: "ranger", label: "Ranger", detail: "arc rapide" },
-    { key: "3", id: "filou", label: "Filou", detail: "doubles dagues, vitesse" },
+  // ── CLASS CARDS ──
+  const classes = [
+    { key: "1", id: "guerrier" as const, icon: "⚔️", label: "Guerrier", desc: "Épée large, solide,\n idéal pour débuter", color: "#ff6644", stats: "❤️ 7 PV  ·  🛡️ Armure+", colorBg: "rgba(255,60,30,0.08)" },
+    { key: "2", id: "ranger" as const, icon: "🏹", label: "Ranger", desc: "Arc précis, tir rapide\n à distance", color: "#44cc66", stats: "❤️ 5 PV  ·  🎯 Double tir", colorBg: "rgba(40,200,80,0.08)" },
+    { key: "3", id: "filou" as const, icon: "🗡️", label: "Filou", desc: "Deux dagues, vitesse\n élevée, nerveux", color: "#bb66ff", stats: "❤️ 4 PV  ·  ⚡ Crit ×2.5", colorBg: "rgba(160,80,255,0.08)" },
   ];
-  ctx.font = `bold ${Math.min(canvasW * 0.019, 14)}px 'Segoe UI', system-ui, sans-serif`;
-  heroChoices.forEach((choice, i) => {
-    const x = canvasW * 0.22 + i * canvasW * 0.2;
-    const selected = state.heroClass === choice.id;
-    ctx.fillStyle = selected ? "rgba(255,210,70,0.18)" : "rgba(255,255,255,0.04)";
-    ctx.fillRect(x - 58, panelY + 14, 116, 38);
-    ctx.strokeStyle = selected ? "#ffcc44" : "rgba(255,255,255,0.12)";
-    ctx.strokeRect(x - 58, panelY + 14, 116, 38);
-    ctx.fillStyle = selected ? "#ffcc44" : "#cfcfcf";
+
+  const cardW = Math.min(canvasW * 0.24, 200);
+  const cardH = canvasH * 0.32;
+  const cardY = canvasH * 0.19;
+  const gap = Math.min(canvasW * 0.03, 24);
+  const totalW = classes.length * cardW + (classes.length - 1) * gap;
+  const startX = cx - totalW / 2;
+
+  classes.forEach((cls, i) => {
+    const x = startX + i * (cardW + gap);
+    const selected = state.heroClass === cls.id;
+
+    // Card background
+    ctx.fillStyle = selected ? cls.colorBg : "rgba(255,255,255,0.02)";
+    const r = 8;
+    ctx.beginPath();
+    ctx.moveTo(x + r, cardY);
+    ctx.lineTo(x + cardW - r, cardY);
+    ctx.quadraticCurveTo(x + cardW, cardY, x + cardW, cardY + r);
+    ctx.lineTo(x + cardW, cardY + cardH - r);
+    ctx.quadraticCurveTo(x + cardW, cardY + cardH, x + cardW - r, cardY + cardH);
+    ctx.lineTo(x + r, cardY + cardH);
+    ctx.quadraticCurveTo(x, cardY + cardH, x, cardY + cardH - r);
+    ctx.lineTo(x, cardY + r);
+    ctx.quadraticCurveTo(x, cardY, x + r, cardY);
+    ctx.closePath();
+    ctx.fill();
+
+    // Border
+    ctx.strokeStyle = selected ? cls.color : "rgba(255,255,255,0.08)";
+    ctx.lineWidth = selected ? 2 : 1;
+    ctx.stroke();
+
+    // Selected glow
+    if (selected) {
+      ctx.save();
+      ctx.shadowColor = cls.color;
+      ctx.shadowBlur = 16;
+      ctx.strokeStyle = cls.color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    const cardCx = x + cardW / 2;
+
+    // Key badge
+    ctx.fillStyle = selected ? cls.color : "rgba(255,255,255,0.2)";
+    ctx.font = `bold ${Math.min(canvasW * 0.016, 12)}px 'Segoe UI', system-ui, sans-serif`;
     ctx.textAlign = "center";
-    ctx.fillText(`${choice.key} · ${choice.label}`, x, panelY + 29);
-    ctx.font = `${Math.min(canvasW * 0.016, 11)}px 'Segoe UI', system-ui, sans-serif`;
-    ctx.fillText(choice.detail, x, panelY + 44);
-    ctx.font = `bold ${Math.min(canvasW * 0.019, 14)}px 'Segoe UI', system-ui, sans-serif`;
+    ctx.fillText(`[${cls.key}]`, cardCx, cardY + 18);
+
+    // Icon
+    ctx.font = `${Math.min(canvasW * 0.05, 36)}px serif`;
+    ctx.fillText(cls.icon, cardCx, cardY + 52);
+
+    // Label
+    ctx.fillStyle = selected ? "#ffffff" : "#aaa";
+    ctx.font = `bold ${Math.min(canvasW * 0.024, 18)}px 'Segoe UI', system-ui, sans-serif`;
+    ctx.fillText(cls.label, cardCx, cardY + 78);
+
+    // Description (2 lines)
+    ctx.fillStyle = selected ? "#ccc" : "#777";
+    ctx.font = `${Math.min(canvasW * 0.016, 12)}px 'Segoe UI', system-ui, sans-serif`;
+    const lines = cls.desc.split("\n");
+    lines.forEach((line, li) => {
+      ctx.fillText(line.trim(), cardCx, cardY + 98 + li * 16);
+    });
+
+    // Stats
+    ctx.fillStyle = selected ? cls.color : "#666";
+    ctx.font = `${Math.min(canvasW * 0.015, 11)}px 'Segoe UI', system-ui, sans-serif`;
+    ctx.fillText(cls.stats, cardCx, cardY + cardH - 14);
   });
 
-  const instructions = [
-    { icon: "🎮", text: "ZQSD / WASD / Flèches : Se déplacer" },
-    { icon: "⚔️", text: "ESPACE / CLIC : attaque de classe" },
-    { icon: "📜", text: "E : lance un sort si tu as un parchemin" },
-    { icon: "💨", text: "MAJ : esquive rapide" },
-    { icon: "🍖", text: "Ramasse nourriture, potions et objets magiques" },
-    { icon: "⭐", text: "Gagne de l'XP, monte de niveau et termine les 12 salles" },
+  // ── CONTROLS (compact) ──
+  const ctrlY = cardY + cardH + canvasH * 0.04;
+  const controls = [
+    "🎮 ZQSD / WASD / Flèches — Se déplacer",
+    "⚔️ ESPACE / CLIC — Attaque de classe",
+    "📜 E — Sort (si parchemin)    💨 MAJ — Esquive rapide",
+    "🍖 Ramasse loot    ⭐ XP → niveau → 12 salles",
   ];
-
-  ctx.font = `${Math.min(canvasW * 0.022, 16)}px 'Segoe UI', system-ui, sans-serif`;
-  instructions.forEach((line, i) => {
-    ctx.fillStyle = "#ddd";
-    ctx.textAlign = "left";
-    ctx.fillText(`${line.icon}  ${line.text}`, canvasW * 0.18, panelY + 86 + i * 25);
+  ctx.font = `${Math.min(canvasW * 0.017, 12)}px 'Segoe UI', system-ui, sans-serif`;
+  controls.forEach((line, i) => {
+    ctx.fillStyle = "#888";
+    ctx.textAlign = "center";
+    ctx.fillText(line, cx, ctrlY + i * 20);
   });
 
-  // Start prompt (pulsing)
-  const pulse = 0.6 + 0.4 * Math.sin(t * 3);
+  // ── START PROMPT (pulsing) ──
+  const pulse = 0.5 + 0.5 * Math.sin(t * 3);
   ctx.save();
   ctx.globalAlpha = pulse;
   ctx.fillStyle = "#ffcc00";
-  ctx.font = `bold ${Math.min(canvasW * 0.028, 20)}px 'Segoe UI', system-ui, sans-serif`;
+  ctx.font = `bold ${Math.min(canvasW * 0.026, 18)}px 'Segoe UI', system-ui, sans-serif`;
   ctx.textAlign = "center";
-  ctx.fillText("Appuie sur ESPACE ou CLIQUE pour commencer", cx, canvasH * 0.84);
+  ctx.fillText("ESPACE ou CLIQUE pour commencer", cx, canvasH * 0.92);
   ctx.restore();
 }
 
