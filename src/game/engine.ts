@@ -171,6 +171,9 @@ export interface GameState {
   projectileIdCounter: number;
   pickupIdCounter: number;
   keysDown: Set<string>;
+  mouseX: number;
+  mouseY: number;
+  mouseActive: boolean;
 
   viewW: number;
   viewH: number;
@@ -245,6 +248,9 @@ export function createInitialState(vw: number, vh: number): GameState {
     projectileIdCounter: 0,
     pickupIdCounter: 0,
     keysDown: new Set(),
+    mouseX: 0,
+    mouseY: 0,
+    mouseActive: false,
 
     viewW: vw,
     viewH: vh,
@@ -710,6 +716,14 @@ function getAttackAngle(state: GameState): number {
   if (state.keysDown.has("ArrowUp") || state.keysDown.has("KeyW") || state.keysDown.has("z") || state.keysDown.has("Z") || state.keysDown.has("w") || state.keysDown.has("W")) aimY -= 1;
   if (state.keysDown.has("ArrowDown") || state.keysDown.has("KeyS") || state.keysDown.has("s") || state.keysDown.has("S")) aimY += 1;
   if (aimX !== 0 || aimY !== 0) return Math.atan2(aimY, aimX);
+
+  if (state.mouseActive) {
+    const mx = state.mouseX / state.scale;
+    const my = state.mouseY / state.scale;
+    const dx = mx - state.player.x;
+    const dy = my - state.player.y;
+    if (Math.sqrt(dx * dx + dy * dy) > 20) return Math.atan2(dy, dx);
+  }
 
   const nearest = state.enemies
     .filter((enemy) => enemy.alive && enemy.spawnAnim >= 1)
