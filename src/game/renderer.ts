@@ -3,7 +3,7 @@
 // Par Hylst - Geoffroy avec l'aide d'une IA
 // ============================================================
 
-import { GameState } from "./engine";
+import { GameState, DIFFICULTY_CONFIG, Difficulty } from "./engine";
 
 // ──────────────────────────────────────────────
 // IMAGE CACHE
@@ -74,6 +74,7 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState, canvasW:
   drawRoom(ctx, state);
   drawTorches(ctx, state);
   drawPillars(ctx, state);
+  drawCrates(ctx, state);
   drawDoor(ctx, state);
   drawPickups(ctx, state);
   if (state.key && !state.key.collected) drawKey(ctx, state.key);
@@ -341,6 +342,64 @@ function drawPillars(ctx: CanvasRenderingContext2D, state: GameState): void {
         ctx.fillRect(p.x - 10, p.y - 10, p.w + 20, p.h + 20);
       }
     }
+  }
+}
+
+function drawCrates(ctx: CanvasRenderingContext2D, state: GameState): void {
+  for (const c of state.crates) {
+    if (c.hp <= 0) continue;
+    const dmg = 1 - c.hp / c.maxHp;
+    const shake = c.hitTimer > 0 ? Math.sin(c.hitTimer * 80) * 2 : 0;
+    ctx.save();
+    ctx.translate(shake, 0);
+
+    // Shadow
+    ctx.fillStyle = "rgba(0,0,0,0.4)";
+    ctx.fillRect(c.x + 3, c.y + 3, c.w, c.h);
+
+    // Wood body
+    const cg = ctx.createLinearGradient(c.x, c.y, c.x + c.w, c.y + c.h);
+    cg.addColorStop(0, dmg > 0.5 ? "#6a4422" : "#a07840");
+    cg.addColorStop(1, dmg > 0.5 ? "#4a2a10" : "#705020");
+    ctx.fillStyle = cg;
+    ctx.fillRect(c.x, c.y, c.w, c.h);
+
+    // Planks
+    ctx.strokeStyle = "rgba(0,0,0,0.3)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(c.x, c.y + c.h / 2);
+    ctx.lineTo(c.x + c.w, c.y + c.h / 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(c.x + c.w / 2, c.y);
+    ctx.lineTo(c.x + c.w / 2, c.y + c.h);
+    ctx.stroke();
+
+    // Nails
+    ctx.fillStyle = "#888";
+    ctx.fillRect(c.x + 2, c.y + 2, 2, 2);
+    ctx.fillRect(c.x + c.w - 4, c.y + 2, 2, 2);
+    ctx.fillRect(c.x + 2, c.y + c.h - 4, 2, 2);
+    ctx.fillRect(c.x + c.w - 4, c.y + c.h - 4, 2, 2);
+
+    // Border
+    ctx.strokeStyle = "#5a3a18";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(c.x, c.y, c.w, c.h);
+
+    // Damage cracks
+    if (dmg > 0) {
+      ctx.strokeStyle = "rgba(0,0,0,0.5)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(c.x + c.w * 0.3, c.y);
+      ctx.lineTo(c.x + c.w * 0.5, c.y + c.h * 0.5);
+      ctx.lineTo(c.x + c.w * 0.7, c.y + c.h);
+      ctx.stroke();
+    }
+
+    ctx.restore();
   }
 }
 
@@ -1240,7 +1299,7 @@ export function drawHUD(ctx: CanvasRenderingContext2D, state: GameState, canvasW
   ctx.fillStyle = "#fff";
   ctx.font = "10px 'Segoe UI', system-ui, sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(`${state.health}/${state.maxHealth}`, hbX + hbW / 2, hbY + hbH / 2 + 1);
+  ctx.fillText(`❤️${state.health}/${state.maxHealth}`, hbX + hbW / 2, hbY + hbH / 2 + 1);
 
   // ── XP BAR (below health) ──
   const xpY = hbY + hbH + 2;
@@ -1281,16 +1340,30 @@ export function drawHUD(ctx: CanvasRenderingContext2D, state: GameState, canvasW
     ctx.fillText("🚪 Porte ouverte!", rightX, hudH / 2 - 8);
   }
 
-  // Boost timers
-  const boostTexts = [];
-  if (state.speedBoostTimer > 0) boostTexts.push(`VIT ${Math.ceil(state.speedBoostTimer)}s`);
-  if (state.damageBoostTimer > 0) boostTexts.push(`PUI ${Math.ceil(state.damageBoostTimer)}s`);
-  if (state.shieldTimer > 0) boostTexts.push(`BOUCLIER ${Math.ceil(state.shieldTimer)}s`);
-  if (boostTexts.length > 0) {
-    ctx.fillStyle = "#9df5ff";
-    ctx.font = "10px 'Segoe UI', system-ui, sans-serif";
-    ctx.textAlign = "right";
-    ctx.fillText(boostTexts.join(" · "), rightX, hudH / 2 + 28);
+  // Boost icons with colored badges
+  let boostX = hbX + hbW + 10;
+  const boostY = hudH / 2 + 16;
+  ctx.textAlign = "left";
+  ctx.font = "10px 'Segoe UI', system-ui, sans-serif";
+  if (state.speedBoostTimer > 0) {
+    ctx.fillStyle = "rgba(100,200,255,0.2)";
+    ctx.fillRect(boostX - 2, boostY - 8, 50, 14);
+    ctx.fillStyle = "#66ccff";
+    ctx.fillText(`🏃${Math.ceil(state.speedBoostTimer)}s`, boostX, boostY);
+    boostX += 54;
+  }
+  if (state.damageBoostTimer > 0) {
+    ctx.fillStyle = "rgba(255,100,100,0.2)";
+    ctx.fillRect(boostX - 2, boostY - 8, 50, 14);
+    ctx.fillStyle = "#ff6666";
+    ctx.fillText(`⚔️${Math.ceil(state.damageBoostTimer)}s`, boostX, boostY);
+    boostX += 54;
+  }
+  if (state.shieldTimer > 0) {
+    ctx.fillStyle = "rgba(255,215,0,0.2)";
+    ctx.fillRect(boostX - 2, boostY - 8, 60, 14);
+    ctx.fillStyle = "#ffd700";
+    ctx.fillText(`🛡️${Math.ceil(state.shieldTimer)}s`, boostX, boostY);
   }
 }
 
@@ -1325,15 +1398,69 @@ export function drawTitle(ctx: CanvasRenderingContext2D, canvasW: number, canvas
   ctx.shadowColor = "rgba(255,200,0,0.5)";
   ctx.shadowBlur = 24;
   ctx.fillStyle = "#ffd700";
-  ctx.font = `bold ${Math.min(canvasW * 0.065, 48)}px 'Georgia', serif`;
+  ctx.font = `bold ${Math.min(canvasW * 0.055, 44)}px 'Georgia', serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("⚔️  DONJON FLASH  ⚔️", cx, canvasH * 0.1);
+  ctx.fillText("⚔️  DONJON FLASH  ⚔️", cx, canvasH * 0.07);
   ctx.restore();
 
   ctx.fillStyle = "#aa8844";
-  ctx.font = `italic ${Math.min(canvasW * 0.02, 14)}px 'Georgia', serif`;
-  ctx.fillText("Action-RPG tactique procedural", cx, canvasH * 0.1 + 30);
+  ctx.font = `italic ${Math.min(canvasW * 0.018, 13)}px 'Georgia', serif`;
+  ctx.fillText("Action-RPG tactique procédural", cx, canvasH * 0.07 + 26);
+
+  // ── LORE ──
+  const loreY = canvasH * 0.07 + 50;
+  ctx.fillStyle = "rgba(200,180,140,0.6)";
+  ctx.font = `${Math.min(canvasW * 0.015, 11)}px 'Georgia', serif`;
+  ctx.fillText("Sous les ruines d'un empire oublié, un donjon se régénère sans cesse.", cx, loreY);
+  ctx.fillText("Trois héros s'élancent dans les ténèbres — qui survivra ?", cx, loreY + 16);
+
+  // ── MODE SELECTOR (1P / 2P) ──
+  const modeY = loreY + 42;
+  const modes = [{ v: 1 as const, label: "1 joueur" }, { v: 2 as const, label: "2 joueurs" }];
+  const modeBtnW = Math.min(canvasW * 0.1, 80);
+  const modeGap = 12;
+  const modeTotalW = modes.length * modeBtnW + (modes.length - 1) * modeGap;
+  const modeStartX = cx - modeTotalW / 2;
+  modes.forEach((m, i) => {
+    const mx = modeStartX + i * (modeBtnW + modeGap);
+    const sel = state.playerCount === m.v;
+    ctx.fillStyle = sel ? "rgba(255,215,0,0.15)" : "rgba(255,255,255,0.03)";
+    ctx.fillRect(mx, modeY, modeBtnW, 26);
+    ctx.strokeStyle = sel ? "#ffd700" : "rgba(255,255,255,0.1)";
+    ctx.lineWidth = sel ? 2 : 1;
+    ctx.strokeRect(mx, modeY, modeBtnW, 26);
+    ctx.fillStyle = sel ? "#ffd700" : "#888";
+    ctx.font = `bold ${Math.min(canvasW * 0.016, 12)}px 'Segoe UI', system-ui, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.fillText(m.label, mx + modeBtnW / 2, modeY + 17);
+  });
+
+  // ── DIFFICULTY SELECTOR ──
+  const diffY = modeY + 36;
+  const diffs = (Object.keys(DIFFICULTY_CONFIG) as Difficulty[]);
+  const diffBtnW = Math.min(canvasW * 0.1, 72);
+  const diffGap = 6;
+  const diffTotalW = diffs.length * diffBtnW + (diffs.length - 1) * diffGap;
+  const diffStartX = cx - diffTotalW / 2;
+  ctx.fillStyle = "#888";
+  ctx.font = `${Math.min(canvasW * 0.014, 10)}px 'Segoe UI', system-ui, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.fillText("DIFFICULTÉ", cx, diffY - 4);
+  diffs.forEach((d, i) => {
+    const dx = diffStartX + i * (diffBtnW + diffGap);
+    const sel = state.difficulty === d;
+    const cfg = DIFFICULTY_CONFIG[d];
+    ctx.fillStyle = sel ? "rgba(255,100,60,0.15)" : "rgba(255,255,255,0.03)";
+    ctx.fillRect(dx, diffY + 6, diffBtnW, 26);
+    ctx.strokeStyle = sel ? "#ff8844" : "rgba(255,255,255,0.08)";
+    ctx.lineWidth = sel ? 2 : 1;
+    ctx.strokeRect(dx, diffY + 6, diffBtnW, 26);
+    ctx.fillStyle = sel ? "#ffaa66" : "#666";
+    ctx.font = `${Math.min(canvasW * 0.013, 10)}px 'Segoe UI', system-ui, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.fillText(cfg.label, dx + diffBtnW / 2, diffY + 22);
+  });
 
   // ── CLASS CARDS ──
   const classes = [
@@ -1342,10 +1469,10 @@ export function drawTitle(ctx: CanvasRenderingContext2D, canvasW: number, canvas
     { key: "3", id: "filou" as const, icon: "🗡️", label: "Filou", desc: "Deux dagues, vitesse\n élevée, nerveux", lore: "Ombre furtive, chaque strike\nest un calcul mortel —\nvitesse et précision.", color: "#bb66ff", stats: "❤️ 4 PV  ·  ⚡ Crit ×2.5", colorBg: "rgba(160,80,255,0.08)" },
   ];
 
-  const cardW = Math.min(canvasW * 0.24, 200);
-  const cardH = canvasH * 0.32;
-  const cardY = canvasH * 0.19;
-  const gap = Math.min(canvasW * 0.03, 24);
+  const cardW = Math.min(canvasW * 0.22, 180);
+  const cardH = canvasH * 0.28;
+  const cardY = diffY + 48;
+  const gap = Math.min(canvasW * 0.03, 20);
   const totalW = classes.length * cardW + (classes.length - 1) * gap;
   const startX = cx - totalW / 2;
 
@@ -1353,7 +1480,6 @@ export function drawTitle(ctx: CanvasRenderingContext2D, canvasW: number, canvas
     const x = startX + i * (cardW + gap);
     const selected = state.heroClass === cls.id;
 
-    // Card background
     ctx.fillStyle = selected ? cls.colorBg : "rgba(255,255,255,0.02)";
     const r = 8;
     ctx.beginPath();
@@ -1369,12 +1495,10 @@ export function drawTitle(ctx: CanvasRenderingContext2D, canvasW: number, canvas
     ctx.closePath();
     ctx.fill();
 
-    // Border
     ctx.strokeStyle = selected ? cls.color : "rgba(255,255,255,0.08)";
     ctx.lineWidth = selected ? 2 : 1;
     ctx.stroke();
 
-    // Selected glow
     if (selected) {
       ctx.save();
       ctx.shadowColor = cls.color;
@@ -1386,67 +1510,60 @@ export function drawTitle(ctx: CanvasRenderingContext2D, canvasW: number, canvas
     }
 
     const cardCx = x + cardW / 2;
-
-    // Key badge
     ctx.fillStyle = selected ? cls.color : "rgba(255,255,255,0.2)";
     ctx.font = `bold ${Math.min(canvasW * 0.016, 12)}px 'Segoe UI', system-ui, sans-serif`;
     ctx.textAlign = "center";
-    ctx.fillText(`[${cls.key}]`, cardCx, cardY + 18);
+    ctx.fillText(`[${cls.key}]`, cardCx, cardY + 16);
 
-    // Icon
-    ctx.font = `${Math.min(canvasW * 0.05, 36)}px serif`;
-    ctx.fillText(cls.icon, cardCx, cardY + 52);
+    ctx.font = `${Math.min(canvasW * 0.045, 32)}px serif`;
+    ctx.fillText(cls.icon, cardCx, cardY + 46);
 
-    // Label
     ctx.fillStyle = selected ? "#ffffff" : "#aaa";
-    ctx.font = `bold ${Math.min(canvasW * 0.024, 18)}px 'Segoe UI', system-ui, sans-serif`;
-    ctx.fillText(cls.label, cardCx, cardY + 78);
+    ctx.font = `bold ${Math.min(canvasW * 0.022, 16)}px 'Segoe UI', system-ui, sans-serif`;
+    ctx.fillText(cls.label, cardCx, cardY + 70);
 
-    // Description (2 lines)
     ctx.fillStyle = selected ? "#ccc" : "#777";
-    ctx.font = `${Math.min(canvasW * 0.016, 12)}px 'Segoe UI', system-ui, sans-serif`;
+    ctx.font = `${Math.min(canvasW * 0.015, 11)}px 'Segoe UI', system-ui, sans-serif`;
     const lines = cls.desc.split("\n");
     lines.forEach((line, li) => {
-      ctx.fillText(line.trim(), cardCx, cardY + 98 + li * 16);
+      ctx.fillText(line.trim(), cardCx, cardY + 88 + li * 14);
     });
 
-    // Lore (italic)
     ctx.fillStyle = selected ? "rgba(200,180,140,0.8)" : "rgba(150,140,120,0.5)";
-    ctx.font = `italic ${Math.min(canvasW * 0.014, 10)}px 'Georgia', serif`;
+    ctx.font = `italic ${Math.min(canvasW * 0.013, 9)}px 'Georgia', serif`;
     const loreLines = cls.lore.split("\n");
     loreLines.forEach((line, li) => {
-      ctx.fillText(line.trim(), cardCx, cardY + 136 + li * 14);
+      ctx.fillText(line.trim(), cardCx, cardY + 120 + li * 12);
     });
 
-    // Stats
     ctx.fillStyle = selected ? cls.color : "#666";
-    ctx.font = `${Math.min(canvasW * 0.015, 11)}px 'Segoe UI', system-ui, sans-serif`;
-    ctx.fillText(cls.stats, cardCx, cardY + cardH - 14);
+    ctx.font = `${Math.min(canvasW * 0.014, 10)}px 'Segoe UI', system-ui, sans-serif`;
+    ctx.fillText(cls.stats, cardCx, cardY + cardH - 10);
   });
 
-  // ── CONTROLS (compact) ──
-  const ctrlY = cardY + cardH + canvasH * 0.04;
+  // ── CONTROLS ──
+  const ctrlY = cardY + cardH + canvasH * 0.03;
   const controls = [
     "🎮 ZQSD / WASD / Flèches — Se déplacer",
     "⚔️ ESPACE / CLIC — Attaque de classe",
     "📜 E — Sort (si parchemin)    💨 MAJ — Esquive rapide",
     "🍖 Ramasse loot    ⭐ XP → niveau → 12 salles",
   ];
-  ctx.font = `${Math.min(canvasW * 0.017, 12)}px 'Segoe UI', system-ui, sans-serif`;
+  ctx.font = `${Math.min(canvasW * 0.016, 11)}px 'Segoe UI', system-ui, sans-serif`;
   controls.forEach((line, i) => {
     ctx.fillStyle = "#888";
     ctx.textAlign = "center";
-    ctx.fillText(line, cx, ctrlY + i * 20);
+    ctx.fillText(line, cx, ctrlY + i * 18);
   });
 
-  // ── START PROMPT (pulsing) ──
+  // ── START PROMPT ──
   const pulse = 0.5 + 0.5 * Math.sin(t * 3);
   ctx.save();
   ctx.globalAlpha = pulse;
   ctx.fillStyle = "#ffcc00";
-  ctx.font = `bold ${Math.min(canvasW * 0.026, 18)}px 'Segoe UI', system-ui, sans-serif`;
+  ctx.font = `bold ${Math.min(canvasW * 0.024, 16)}px 'Segoe UI', system-ui, sans-serif`;
   ctx.textAlign = "center";
-  ctx.fillText("ESPACE ou CLIQUE pour commencer", cx, canvasH * 0.92);
+  ctx.fillText("ESPACE ou CLIQUE pour commencer", cx, canvasH * 0.95);
   ctx.restore();
 }
 
@@ -1457,12 +1574,12 @@ export function drawOnboarding(ctx: CanvasRenderingContext2D, canvasW: number, c
   ctx.fillStyle = "rgba(4,3,10,0.94)";
   ctx.fillRect(0, 0, canvasW, canvasH);
 
-  // Responsive panel: use smaller of W/H ratio for aspect
-  const aspectRatio = 4 / 5;
+  // Responsive panel: landscape aspect for better desktop fit
+  const aspectRatio = 16 / 10;
   let panelW = Math.min(canvasW * 0.88, 880);
   let panelH = panelW / aspectRatio;
-  if (panelH > canvasH * 0.84) {
-    panelH = canvasH * 0.84;
+  if (panelH > canvasH * 0.82) {
+    panelH = canvasH * 0.82;
     panelW = panelH * aspectRatio;
   }
   const px = (canvasW - panelW) / 2;

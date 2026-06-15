@@ -13,9 +13,28 @@ const SPAWN_BUFFER = 10;
 
 export type DungeonMode = "grande_salle" | "couloirs" | "labyrinthe" | "arena";
 export type HeroClass = "guerrier" | "ranger" | "filou";
+export type Difficulty = "very_easy" | "easy" | "normal" | "hard" | "very_hard";
 export type ProjectileKind = "arrow" | "dagger" | "spell";
 export type PickupKind = "scroll" | "food" | "potion_speed" | "potion_power" | "magic_shield";
-export type SoundEvent = "attack" | "arrow" | "dagger" | "spell" | "pickup" | "hurt" | "shield" | "enemy_die" | "key" | "door" | "dash" | "room" | "select" | "pause" | "level_up" | "victory";
+export type SoundEvent = "attack" | "arrow" | "dagger" | "spell" | "pickup" | "hurt" | "shield" | "enemy_die" | "key" | "door" | "dash" | "room" | "select" | "pause" | "level_up" | "victory" | "crate_break" | "crate_hit";
+
+export interface Crate {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  hp: number;
+  maxHp: number;
+  hitTimer: number;
+}
+
+export const DIFFICULTY_CONFIG: Record<Difficulty, { label: string; hpMul: number; dmgMul: number; countMul: number; desc: string }> = {
+  very_easy: { label: "Très facile", hpMul: 0.6, dmgMul: 0.5, countMul: 0.6, desc: "Pour découvrir l'histoire" },
+  easy: { label: "Facile", hpMul: 0.8, dmgMul: 0.7, countMul: 0.8, desc: "Détente et exploration" },
+  normal: { label: "Normal", hpMul: 1.0, dmgMul: 1.0, countMul: 1.0, desc: "L'équilibre prévu" },
+  hard: { label: "Difficile", hpMul: 1.4, dmgMul: 1.3, countMul: 1.3, desc: "Pour les vétérans" },
+  very_hard: { label: "Très difficile", hpMul: 2.0, dmgMul: 1.6, countMul: 1.6, desc: "Seulement les meilleurs" },
+};
 
 export interface Obstacle {
   x: number;
@@ -182,6 +201,9 @@ export interface GameState {
   combo: number;
   comboTimer: number;
   soundEvents: SoundEvent[];
+  difficulty: Difficulty;
+  playerCount: 1 | 2;
+  crates: Crate[];
 }
 
 export function createInitialState(vw: number, vh: number): GameState {
@@ -259,6 +281,9 @@ export function createInitialState(vw: number, vh: number): GameState {
     combo: 0,
     comboTimer: 0,
     soundEvents: [],
+    difficulty: "normal",
+    playerCount: 1,
+    crates: [],
   };
 }
 
@@ -476,13 +501,16 @@ function isCircleBlocked(state: GameState, x: number, y: number, radius: number)
 
 function spawnEnemies(state: GameState): void {
   const modeBonus = state.dungeonMode === "labyrinthe" ? 1 : state.dungeonMode === "arena" ? 2 : 0;
-  const count = Math.min(20, 3 + Math.floor(state.roomLevel * 1.35) + modeBonus + Math.floor(Math.random() * 3));
+  const diffCfg = DIFFICULTY_CONFIG[state.difficulty];
+  const baseCount = 3 + Math.floor(state.roomLevel * 1.35) + modeBonus + Math.floor(Math.random() * 3);
+  const count = Math.min(20, Math.round(baseCount * diffCfg.countMul));
   const baseSpeed = 46 + state.roomLevel * 7 + (state.dungeonMode === "couloirs" ? 4 : 0);
 
   for (let i = 0; i < count; i++) {
     const enemySize = 12 + Math.min(state.roomLevel * 0.5, 6);
     const spawn = findEnemySpawnPoint(state, enemySize);
-    const hp = state.roomLevel >= 9 && i % 5 === 0 ? 3 : state.roomLevel >= 5 && i % 3 === 0 ? 2 : 1;
+    const baseHp = state.roomLevel >= 9 && i % 5 === 0 ? 3 : state.roomLevel >= 5 && i % 3 === 0 ? 2 : 1;
+    const hp = Math.max(1, Math.round(baseHp * diffCfg.hpMul));
     state.enemies.push({
       id: ++state.enemyIdCounter,
       pos: spawn,
@@ -493,15 +521,33 @@ function spawnEnemies(state: GameState): void {
       hp,
       maxHp: hp,
       hitTimer: 0,
-      spawnAnim: -1, // start at -1 for delay
+      spawnAnim: -1,
       deathTimer: 0,
     });
   }
 
-  // Stagger spawn animations
   state.enemies.forEach((e, i) => {
-    e.spawnAnim = -0.5 - i * 0.08; // negative = delay before appearing
+    e.spawnAnim = -0.5 - i * 0.08;
   });
+}
+
+function spawnCrates(state: GameState): void {
+  state.crates = [];
+  const count = 2 + Math.floor(Math.random() * 3);
+  const pad = 60;
+  for (let i = 0; i < count; i++) {
+    const w = 28 + Math.random() * 12;
+    const h = 28 + Math.random() * 12;
+    const x = pad + Math.random() * (state.roomWidth - pad * 2 - w);
+    const y = pad + Math.random() * (state.roomHeight - pad * 2 - h);
+    let blocked = false;
+    for (const p of state.pillars) {
+      if (x < p.x + p.w + 10 && x + w > p.x - 10 && y < p.y + p.h + 10 && y + h > p.y - 10) { blocked = true; break; }
+    }
+    if (state.door.x > 0 && x < state.door.x + state.door.w + 10 && x + w > state.door.x - 10 && y < state.door.y + state.door.h + 10 && y + h > state.door.y - 10) blocked = true;
+    if (blocked) continue;
+    state.crates.push({ x, y, w, h, hp: 2, maxHp: 2, hitTimer: 0 });
+  }
 }
 
 export function nextRoom(state: GameState): void {
@@ -529,15 +575,18 @@ export function nextRoom(state: GameState): void {
   placeHeroSafely(state);
   spawnRoomPickups(state);
   spawnEnemies(state);
+  spawnCrates(state);
   queueSound(state, "room");
   triggerShake(state, 6, 0.3);
 }
 
 export function startGame(state: GameState): void {
   const chosenClass = state.heroClass;
+  const chosenDifficulty = state.difficulty;
   const s = createInitialState(state.viewW, state.viewH);
   Object.assign(state, s);
   setHeroClass(state, chosenClass);
+  state.difficulty = chosenDifficulty;
   state.phase = "fighting";
   state.lastTime = 0;
   state.roomLevel = 1;
@@ -545,6 +594,7 @@ export function startGame(state: GameState): void {
   placeHeroSafely(state);
   spawnRoomPickups(state);
   spawnEnemies(state);
+  spawnCrates(state);
   queueSound(state, "room");
 }
 
@@ -585,7 +635,7 @@ export function togglePause(state: GameState): void {
 }
 
 export function returnToMenu(state: GameState): void {
-  const fresh = createInitialState();
+  const fresh = createInitialState(state.viewW, state.viewH);
   Object.assign(state, fresh);
   queueSound(state, "pause");
 }
@@ -608,6 +658,16 @@ export function setHeroClass(state: GameState, heroClass: HeroClass): void {
     state.playerSpeed = 190;
     state.attackCooldown = 0.24;
   }
+  queueSound(state, "select");
+}
+
+export function setDifficulty(state: GameState, difficulty: Difficulty): void {
+  state.difficulty = difficulty;
+  queueSound(state, "select");
+}
+
+export function setPlayerCount(state: GameState, count: 1 | 2): void {
+  state.playerCount = count;
   queueSound(state, "select");
 }
 
@@ -1235,6 +1295,43 @@ export function update(state: GameState, time: number): void {
       if (state.swordSwinging && enemy.spawnAnim >= 1) {
         if (enemy.hitTimer <= 0 && hitBySwordArc(state, enemy)) {
           damageEnemy(state, enemy, 1 + (state.damageBoostTimer > 0 ? 1 : 0), "sword");
+        }
+      }
+    }
+
+    // ── Crates: sword hit ──
+    if (state.swordSwinging) {
+      for (const crate of state.crates) {
+        if (crate.hp <= 0) continue;
+        if (crate.hitTimer > 0) continue;
+        const ccx = crate.x + crate.w / 2;
+        const ccy = crate.y + crate.h / 2;
+        const dist = Math.sqrt((state.player.x - ccx) ** 2 + (state.player.y - ccy) ** 2);
+        const swordReach = state.playerRadius + Math.max(crate.w, crate.h) / 2 + 20;
+        if (dist < swordReach && hitBySwordArc(state, { pos: { x: ccx, y: ccy }, size: Math.max(crate.w, crate.h) / 2, spawnAnim: 1 })) {
+          crate.hp -= 1;
+          crate.hitTimer = 0.15;
+          queueSound(state, "crate_hit");
+          if (crate.hp <= 0) {
+            queueSound(state, "crate_break");
+            for (let p = 0; p < 6; p++) {
+              state.particles.push({
+                pos: { x: ccx + (Math.random() - 0.5) * crate.w, y: ccy + (Math.random() - 0.5) * crate.h },
+                vel: { x: (Math.random() - 0.5) * 180, y: (Math.random() - 0.5) * 180 },
+                life: 0.5, maxLife: 0.5, color: "#b88844", size: 3 + Math.random() * 3, decay: 0.92, gravity: 200, type: "dust",
+              });
+            }
+            // Drop loot
+            const roll = Math.random();
+            if (roll < 0.4) {
+              spawnPickup(state, "food", { x: ccx, y: ccy });
+            } else if (roll < 0.6) {
+              spawnPickup(state, Math.random() < 0.5 ? "potion_speed" : "potion_power", { x: ccx, y: ccy });
+            } else if (roll < 0.75) {
+              spawnPickup(state, "scroll", { x: ccx, y: ccy });
+            }
+            state.score += 5;
+          }
         }
       }
     }

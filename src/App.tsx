@@ -7,6 +7,8 @@ import {
   castScrollSpell,
   dashHero,
   setHeroClass,
+  setDifficulty,
+  setPlayerCount,
   advanceOnboarding,
   backOnboarding,
   togglePause,
@@ -236,7 +238,7 @@ export default function App() {
         keyHandledRef.current = false;
         return;
       }
-      // Title screen: hit-test on class cards
+      // Title screen: hit-test on class cards, difficulty, mode
       if (state.phase === "title") {
         const canvas = canvasRef.current;
         if (canvas) {
@@ -246,10 +248,38 @@ export default function App() {
           const cw = rect.width;
           const ch = rect.height;
           const cx = cw / 2;
-          const cardW = Math.min(cw * 0.24, 200);
-          const cardH = ch * 0.32;
-          const cardY = ch * 0.19;
-          const gap = Math.min(cw * 0.03, 24);
+
+          // Mode buttons (1P/2P)
+          const loreY = ch * 0.07 + 50;
+          const modeY = loreY + 42;
+          const modeBtnW = Math.min(cw * 0.1, 80);
+          const modeGap = 12;
+          const modeTotalW = 2 * modeBtnW + modeGap;
+          const modeStartX = cx - modeTotalW / 2;
+          if (my >= modeY && my <= modeY + 26) {
+            if (mx >= modeStartX && mx <= modeStartX + modeBtnW) { setPlayerCount(state, 1); return; }
+            if (mx >= modeStartX + modeBtnW + modeGap && mx <= modeStartX + 2 * modeBtnW + modeGap) { setPlayerCount(state, 2); return; }
+          }
+
+          // Difficulty buttons
+          const diffY = modeY + 36;
+          const diffKeys = ["very_easy", "easy", "normal", "hard", "very_hard"] as const;
+          const diffBtnW = Math.min(cw * 0.1, 72);
+          const diffGap = 6;
+          const diffTotalW = 5 * diffBtnW + 4 * diffGap;
+          const diffStartX = cx - diffTotalW / 2;
+          if (my >= diffY + 6 && my <= diffY + 32) {
+            for (let i = 0; i < 5; i++) {
+              const dx = diffStartX + i * (diffBtnW + diffGap);
+              if (mx >= dx && mx <= dx + diffBtnW) { setDifficulty(state, diffKeys[i]); return; }
+            }
+          }
+
+          // Class cards
+          const cardW = Math.min(cw * 0.22, 180);
+          const cardH = ch * 0.28;
+          const cardY = diffY + 48;
+          const gap = Math.min(cw * 0.03, 20);
           const totalW = 3 * cardW + 2 * gap;
           const startX = cx - totalW / 2;
           const classes: Array<{ id: "guerrier" | "ranger" | "filou"; x0: number }> = [
