@@ -3,7 +3,7 @@
 ## Intégration plateforme
 - [x] Corriger vite.config.ts (ajouter base: '/donjonflash2/')
 - [x] Ajouter SEO meta tags (og, twitter, canonical, robots)
-- [x] Build le jeu (npm run build, single-file ~282 KB)
+- [x] Build le jeu (npm run build, single-file ~287 KB)
 - [x] Copier dist/ → donjonflash2/ dans le monorepo
 - [x] Ajouter carte au main menu
 - [x] Générer l'image OG (HuggingFace FLUX.1-dev)
@@ -12,7 +12,7 @@
 - [ ] Déployer via Coolify
 - [ ] Tester l'accès : https://games.hylst.fr/donjonflash2/
 
-## Corrections (v1.2.0)
+## v1.2.0 — Corrections
 - [x] Fix HUD: coeur ❤️ restauré dans barre de vie
 - [x] Fix HUD: barre de vie repositionnée (après texte classe, pas de chevauchement)
 - [x] Fix HUD: bonus icons colorées (🏃VIT, ⚔️PUI, 🛡️BOUCLIER)
@@ -22,7 +22,7 @@
 - [x] D-pad: touch-none → touch-manipulation
 - [x] Touche H pour retour menu depuis la pause
 
-## Nouvelles fonctionnalités (v1.2.0)
+## v1.2.0 — Nouvelles fonctionnalités
 - [x] Écran titre: lore/storytelling (2 lignes d'intro)
 - [x] Écran titre: sélecteur 1 joueur / 2 joueurs
 - [x] Écran titre: sélecteur de difficulté (5 niveaux)
@@ -30,6 +30,21 @@
 - [x] Difficulté: multiplicateurs PV, dégâts, nombre d'ennemis
 - [x] Caisses à casser (2-3 par salle, drops loot)
 - [x] Caisses: rendu bois avec planches, clous, fissures
+
+## v1.2.0 — Audio
+- [x] Drone ambient (sine 55Hz + triangle 82Hz, LFO modulation)
+- [x] Progression harmonique Am - F - C - G (4 accords)
+- [x] Hi-hat sur les beats (intensity > 1)
+- [x] Delay atmosphérique (0.35s, feedback 18%)
+- [x] SFX épée enrichi (swoosh métallique + impact + anneau)
+- [x] SFX arc (twang + sifflement)
+- [x] SFX dague (flick métallique rapide)
+- [x] SFX sort (chime magique montant + sparkle)
+- [x] SFX blessure (crunch + echo retardé)
+- [x] SFX bouclier (clang métallique)
+- [x] SFX ennemi mort (burst gore + libération d'âme)
+- [x] SFX caisse (crack bois + shatter + debris)
+- [x] SFX porte (grincement + chime)
 
 ## Mode 2 joueurs — Écran partagé
 - [ ] Refactorer `GameState.player` → `players: [PlayerState, PlayerState]`
@@ -59,11 +74,6 @@
 - [ ] Dégâts d'équipe OFF par défaut
 - [ ] Revive : un joueur KO → l'autre peut le ressusciter
 - [ ] Boss scale avec le nombre de joueurs (PV ×1.5, dégâts ×1.3)
-
-## Audio
-- [ ] Musique d'ambiance procédurale (dungeon synthwave)
-- [ ] Meilleurs sound FX (caisse, attaque, dash, level up)
-- [ ] Audio spatialisé (direction des ennemis)
 
 ## Améliorations futures
 - [ ] Ajouter un almanach des ennemis
