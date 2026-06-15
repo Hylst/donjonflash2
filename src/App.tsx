@@ -325,6 +325,11 @@ export default function App() {
               if (!state) return;
               advanceOnboarding(state);
             }}
+            onClick={() => {
+              const state = stateRef.current;
+              if (!state) return;
+              advanceOnboarding(state);
+            }}
           >
             ▶ Continuer
           </button>
@@ -333,6 +338,11 @@ export default function App() {
               className="absolute bottom-8 left-8 z-20 px-4 py-3 rounded-xl border border-white/30 bg-black/60 text-white/70 text-sm active:bg-white/20 active:scale-95 transition-transform select-none"
               onTouchStart={(e) => {
                 e.preventDefault();
+                const state = stateRef.current;
+                if (!state) return;
+                backOnboarding(state);
+              }}
+              onClick={() => {
                 const state = stateRef.current;
                 if (!state) return;
                 backOnboarding(state);
@@ -365,6 +375,11 @@ export default function App() {
                   if (!state) return;
                   setHeroClass(state, cls);
                 }}
+                onClick={() => {
+                  const state = stateRef.current;
+                  if (!state) return;
+                  setHeroClass(state, cls);
+                }}
               >
                 {icons[i]} {labels[i]}
               </button>
@@ -382,6 +397,11 @@ export default function App() {
           if (!state) return;
           heroPrimaryAttack(state);
         }}
+        onClick={() => {
+          const state = stateRef.current;
+          if (!state) return;
+          heroPrimaryAttack(state);
+        }}
         aria-label="Attaque de classe"
       >
         ⚔️
@@ -391,6 +411,11 @@ export default function App() {
         className="absolute bottom-24 right-7 z-10 flex h-12 w-12 items-center justify-center rounded-full border border-cyan-300/50 bg-black/60 text-xl text-cyan-200 shadow-lg shadow-cyan-900/25 active:bg-cyan-600/30 active:scale-90 transition-transform select-none"
         onTouchStart={(e) => {
           e.preventDefault();
+          const state = stateRef.current;
+          if (!state) return;
+          castScrollSpell(state);
+        }}
+        onClick={() => {
           const state = stateRef.current;
           if (!state) return;
           castScrollSpell(state);
@@ -408,6 +433,11 @@ export default function App() {
           if (!state) return;
           dashHero(state);
         }}
+        onClick={() => {
+          const state = stateRef.current;
+          if (!state) return;
+          dashHero(state);
+        }}
         aria-label="Esquive"
       >
         ⇢
@@ -415,7 +445,8 @@ export default function App() {
 
       {/* ── D-pad with touchmove support ── */}
       <div
-        className="absolute bottom-6 left-6 z-10 grid grid-cols-3 grid-rows-3 gap-1 select-none touch-none"
+        className="absolute bottom-6 left-6 z-10 grid grid-cols-3 grid-rows-3 gap-1 select-none"
+        style={{ touchAction: "manipulation" }}
         onTouchMove={(e) => {
           e.preventDefault();
           const state = stateRef.current;

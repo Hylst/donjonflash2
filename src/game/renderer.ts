@@ -1208,9 +1208,9 @@ export function drawHUD(ctx: CanvasRenderingContext2D, state: GameState, canvasW
     ctx.fillText(`×${state.combo} COMBO`, canvasW - pad, hudH / 2 + 9);
   }
 
-  // Health bar
+  // Health bar — right side, below score
   const hbW = 120, hbH = 14;
-  const hbX = pad + 300;
+  const hbX = canvasW - pad - hbW;
   const hbY = hudH / 2 - hbH / 2;
   const hp = state.health / state.maxHealth;
 
@@ -1254,8 +1254,8 @@ export function drawHUD(ctx: CanvasRenderingContext2D, state: GameState, canvasW
   if (state.phase === "fighting" || state.phase === "key_spawned") {
     ctx.fillStyle = "#cc6666";
     ctx.font = "11px 'Segoe UI', system-ui, sans-serif";
-    ctx.textAlign = "left";
-    ctx.fillText(`Ennemis: ${aliveEnemies}`, hbX + hbW + 20, hudH / 2);
+    ctx.textAlign = "right";
+    ctx.fillText(`Ennemis: ${aliveEnemies}`, canvasW - pad, hudH / 2 + 22);
   }
 
   // Key indicator
