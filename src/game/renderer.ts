@@ -1173,45 +1173,48 @@ export function drawHUD(ctx: CanvasRenderingContext2D, state: GameState, canvasW
   ctx.lineTo(canvasW, hudH);
   ctx.stroke();
 
-  // Title
+  ctx.textBaseline = "middle";
+
+  // ── ROW 1 (y = 17) ──
+  // Left: Title
   ctx.fillStyle = "#ffd700";
   ctx.font = "bold 14px 'Segoe UI', system-ui, sans-serif";
   ctx.textAlign = "left";
-  ctx.textBaseline = "middle";
-  ctx.fillText("⚔️ DONJON FLASH", pad, hudH / 2);
+  ctx.fillText("⚔️ DONJON FLASH", pad, hudH / 2 - 8);
 
-  // Room level
+  // Right: Score
+  ctx.fillStyle = "#ffcc00";
+  ctx.font = "bold 13px 'Segoe UI', system-ui, sans-serif";
+  ctx.textAlign = "right";
+  ctx.fillText(`⭐ ${state.score}`, canvasW - pad, hudH / 2 - 8);
+
+  // ── ROW 2 (y = 25) ──
+  // Left: Room
   ctx.fillStyle = "#cc9966";
   ctx.font = "12px 'Segoe UI', system-ui, sans-serif";
+  ctx.textAlign = "left";
   const modeLabel = {
     grande_salle: "Grande salle",
     couloirs: "Couloirs",
     labyrinthe: "Labyrinthe",
     arena: "Arène",
   }[state.dungeonMode];
-  ctx.fillText(`Salle ${state.roomLevel} · ${modeLabel}`, pad + 185, hudH / 2);
+  ctx.fillText(`Salle ${state.roomLevel} · ${modeLabel}`, pad, hudH / 2);
 
+  // ── ROW 3 (y = 41) ──
+  // Left: Class info
   const classLabel = { guerrier: "Guerrier", ranger: "Ranger", filou: "Filou" }[state.heroClass];
   ctx.fillStyle = "#b9d7ff";
-  ctx.fillText(`${classLabel} niv.${state.heroLevel} · ${state.roomsCleared}/${state.maxRooms} salles · Parchemins ${state.scrolls}`, pad + 185, hudH / 2 + 16);
+  ctx.font = "12px 'Segoe UI', system-ui, sans-serif";
+  ctx.textAlign = "left";
+  const classText = `${classLabel} niv.${state.heroLevel} · ${state.roomsCleared}/${state.maxRooms} salles · Parchemins ${state.scrolls}`;
+  ctx.fillText(classText, pad, hudH / 2 + 16);
+  const classTextW = ctx.measureText(classText).width;
 
-  // Score
-  ctx.fillStyle = "#ffcc00";
-  ctx.font = "bold 13px 'Segoe UI', system-ui, sans-serif";
-  ctx.textAlign = "right";
-  ctx.fillText(`⭐ ${state.score}`, canvasW - pad, hudH / 2 - 8);
-
-  // Combo
-  if (state.combo > 1) {
-    ctx.fillStyle = "#ff8800";
-    ctx.font = "bold 11px 'Segoe UI', system-ui, sans-serif";
-    ctx.fillText(`×${state.combo} COMBO`, canvasW - pad, hudH / 2 + 9);
-  }
-
-  // Health bar — right side, below score
-  const hbW = 120, hbH = 14;
-  const hbX = canvasW - pad - hbW;
-  const hbY = hudH / 2 - hbH / 2;
+  // ── HEALTH BAR (after class text) ──
+  const hbW = 100, hbH = 12;
+  const hbX = pad + classTextW + 16;
+  const hbY = hudH / 2 + 16 - hbH / 2;
   const hp = state.health / state.maxHealth;
 
   ctx.fillStyle = "#1a1a1a";
@@ -1220,7 +1223,6 @@ export function drawHUD(ctx: CanvasRenderingContext2D, state: GameState, canvasW
   ctx.lineWidth = 1;
   ctx.strokeRect(hbX, hbY, hbW, hbH);
 
-  // Health fill
   const hGrad = ctx.createLinearGradient(hbX, hbY, hbX + hbW, hbY);
   if (hp > 0.5) {
     hGrad.addColorStop(0, "#44cc44");
@@ -1235,43 +1237,51 @@ export function drawHUD(ctx: CanvasRenderingContext2D, state: GameState, canvasW
   ctx.fillStyle = hGrad;
   ctx.fillRect(hbX + 1, hbY + 1, (hbW - 2) * hp, hbH - 2);
 
-  // Health text
   ctx.fillStyle = "#fff";
   ctx.font = "10px 'Segoe UI', system-ui, sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(`❤️ ${state.health}/${state.maxHealth}`, hbX + hbW / 2, hbY + hbH / 2 + 1);
+  ctx.fillText(`${state.health}/${state.maxHealth}`, hbX + hbW / 2, hbY + hbH / 2 + 1);
 
-  const xpW = 120;
-  const xpY = hbY + hbH + 4;
+  // ── XP BAR (below health) ──
+  const xpY = hbY + hbH + 2;
   const xpPct = Math.min(1, state.xp / state.xpToNext);
   ctx.fillStyle = "#111724";
-  ctx.fillRect(hbX, xpY, xpW, 4);
+  ctx.fillRect(hbX, xpY, hbW, 3);
   ctx.fillStyle = "#6bc7ff";
-  ctx.fillRect(hbX, xpY, xpW * xpPct, 4);
+  ctx.fillRect(hbX, xpY, hbW * xpPct, 3);
 
-  // Enemy counter
+  // ── RIGHT SIDE: COMBO + STATUS ──
+  const rightX = canvasW - pad;
+  if (state.combo > 1) {
+    ctx.fillStyle = "#ff8800";
+    ctx.font = "bold 11px 'Segoe UI', system-ui, sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText(`×${state.combo} COMBO`, rightX, hudH / 2);
+  }
+
   const aliveEnemies = state.enemies.filter((e) => e.alive).length;
   if (state.phase === "fighting" || state.phase === "key_spawned") {
     ctx.fillStyle = "#cc6666";
     ctx.font = "11px 'Segoe UI', system-ui, sans-serif";
     ctx.textAlign = "right";
-    ctx.fillText(`Ennemis: ${aliveEnemies}`, canvasW - pad, hudH / 2 + 22);
+    ctx.fillText(`Ennemis: ${aliveEnemies}`, rightX, hudH / 2 + 16);
   }
 
   // Key indicator
   if (state.key && !state.key.collected) {
     ctx.fillStyle = "#ffd700";
     ctx.font = "11px 'Segoe UI', system-ui, sans-serif";
-    ctx.textAlign = "left";
-    ctx.fillText("🗝️ Clé apparue!", hbX + hbW + 20, hudH / 2);
+    ctx.textAlign = "right";
+    ctx.fillText("🗝️ Clé!", rightX, hudH / 2 - 8);
   }
   if (state.door.open) {
     ctx.fillStyle = "#44ff44";
     ctx.font = "11px 'Segoe UI', system-ui, sans-serif";
-    ctx.textAlign = "left";
-    ctx.fillText("🚪 Porte ouverte — sortez!", hbX + hbW + 20, hudH / 2);
+    ctx.textAlign = "right";
+    ctx.fillText("🚪 Porte ouverte!", rightX, hudH / 2 - 8);
   }
 
+  // Boost timers
   const boostTexts = [];
   if (state.speedBoostTimer > 0) boostTexts.push(`VIT ${Math.ceil(state.speedBoostTimer)}s`);
   if (state.damageBoostTimer > 0) boostTexts.push(`PUI ${Math.ceil(state.damageBoostTimer)}s`);
@@ -1279,8 +1289,8 @@ export function drawHUD(ctx: CanvasRenderingContext2D, state: GameState, canvasW
   if (boostTexts.length > 0) {
     ctx.fillStyle = "#9df5ff";
     ctx.font = "10px 'Segoe UI', system-ui, sans-serif";
-    ctx.textAlign = "left";
-    ctx.fillText(boostTexts.join(" · "), hbX + hbW + 20, hudH / 2 + 15);
+    ctx.textAlign = "right";
+    ctx.fillText(boostTexts.join(" · "), rightX, hudH / 2 + 28);
   }
 }
 
@@ -1447,11 +1457,16 @@ export function drawOnboarding(ctx: CanvasRenderingContext2D, canvasW: number, c
   ctx.fillStyle = "rgba(4,3,10,0.94)";
   ctx.fillRect(0, 0, canvasW, canvasH);
 
-  const cx = canvasW / 2;
-  const panelW = Math.min(canvasW * 0.84, 920);
-  const panelH = Math.min(canvasH * 0.82, 660);
-  const px = cx - panelW / 2;
-  const py = canvasH * 0.08;
+  // Responsive panel: use smaller of W/H ratio for aspect
+  const aspectRatio = 4 / 5;
+  let panelW = Math.min(canvasW * 0.88, 880);
+  let panelH = panelW / aspectRatio;
+  if (panelH > canvasH * 0.84) {
+    panelH = canvasH * 0.84;
+    panelW = panelH * aspectRatio;
+  }
+  const px = (canvasW - panelW) / 2;
+  const py = (canvasH - panelH) / 2;
   const step = state.onboardingStep;
 
   ctx.fillStyle = "rgba(18,14,28,0.92)";
@@ -1460,107 +1475,40 @@ export function drawOnboarding(ctx: CanvasRenderingContext2D, canvasW: number, c
   ctx.lineWidth = 1.5;
   ctx.strokeRect(px, py, panelW, panelH);
 
-  // ── IMAGE (top, contained, landscape aspect) ──
+  const innerPad = Math.min(panelW * 0.04, 28);
+
+  // ── IMAGE (top, contained) ──
   const classImg = onboardingClassesImg;
   const img = step === 1 ? onboardingItemsImg : classImg;
-  const imgX = px + 24;
-  const imgY = py + 20;
-  const imgW = panelW - 48;
-  const imgH = panelH * 0.38;
+  const imgX = px + innerPad;
+  const imgY = py + innerPad;
+  const imgW = panelW - innerPad * 2;
+  const imgH = panelH * 0.4;
   if (img) drawContainImage(ctx, img, imgX, imgY, imgW, imgH);
 
-  // ── TITLE (below image) ──
-  const tx = px + 36;
-  const titleY = imgY + imgH + 24;
+  // ── TITLE ──
+  const tx = px + innerPad * 1.5;
+  const titleY = imgY + imgH + panelH * 0.04;
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
   ctx.fillStyle = "#ffd66b";
-  ctx.font = `bold ${Math.min(canvasW * 0.032, 28)}px 'Georgia', serif`;
+  ctx.font = `bold ${Math.min(panelW * 0.04, 28)}px 'Georgia', serif`;
 
   const classPages: Record<string, Array<{ title: string; lines: string[] }>> = {
     guerrier: [
-      {
-        title: "⚔️ Guerrier — Le rempart",
-        lines: [
-          "L'épée large balaye les ennemis proches.",
-          "Solide et endurant, il encaisse les coups.",
-          "Idéal pour débuter — le plus résistant.",
-        ],
-      },
-      {
-        title: "Objets et magie",
-        lines: [
-          "Parchemins: E lance une Boule de Feu.",
-          "Nourriture: récupère un point de vie.",
-          "Potions: vitesse ou puissance temporaires.",
-          "Bouclier: absorbe les contacts ennemis.",
-        ],
-      },
-      {
-        title: "Survivre au donjon",
-        lines: [
-          "Espace / Clic: balayage d'épée en arc.",
-          "MAJ: dash pour repositionner.",
-          "Tue la vague, ramasse la clé, suis la porte.",
-          "P / Échap: pause avec rappel des règles.",
-        ],
-      },
+      { title: "⚔️ Guerrier — Le rempart", lines: ["L'épée large balaye les ennemis proches.", "Solide et endurant, il encaisse les coups.", "Idéal pour débuter — le plus résistant."] },
+      { title: "Objets et magie", lines: ["Parchemins: E lance une Boule de Feu.", "Nourriture: récupère un point de vie.", "Potions: vitesse ou puissance temporaires.", "Bouclier: absorbe les contacts ennemis."] },
+      { title: "Survivre au donjon", lines: ["Espace / Clic: balayage d'épée en arc.", "MAJ: dash pour repositionner.", "Tue la vague, ramasse la clé, suis la porte.", "P / Échap: pause avec rappel des règles."] },
     ],
     ranger: [
-      {
-        title: "🏹 Ranger — Le chasseur",
-        lines: [
-          "Flèches rapides à distance, frappe précise.",
-          "Double tir au NV3, flèche perçante au NV6.",
-          "Garde tes distances — faible en mêlée.",
-        ],
-      },
-      {
-        title: "Objets et magie",
-        lines: [
-          "Parchemins: E lance une Nova de Gel.",
-          "La nova ralentit les ennemis en zone.",
-          "Nourriture: récupère un point de vie.",
-          "Potions: vitesse ou puissance temporaires.",
-        ],
-      },
-      {
-        title: "Survivre au donjon",
-        lines: [
-          "Espace / Clic: tir de flèche auto-visé.",
-          "MAJ: dash pour esquiver les assauts.",
-          "Tue la vague, ramasse la clé, suis la porte.",
-          "P / Échap: pause avec rappel des règles.",
-        ],
-      },
+      { title: "🏹 Ranger — Le chasseur", lines: ["Flèches rapides à distance, frappe précise.", "Double tir au NV3, flèche perçante au NV6.", "Garde tes distances — faible en mêlée."] },
+      { title: "Objets et magie", lines: ["Parchemins: E lance une Nova de Gel.", "La nova ralentit les ennemis en zone.", "Nourriture: récupère un point de vie.", "Potions: vitesse ou puissance temporaires."] },
+      { title: "Survivre au donjon", lines: ["Espace / Clic: tir de flèche auto-visé.", "MAJ: dash pour esquiver les assauts.", "Tue la vague, ramasse la clé, suis la porte.", "P / Échap: pause avec rappel des règles."] },
     ],
     filou: [
-      {
-        title: "🗡️ Filou — L'ombre",
-        lines: [
-          "Deux dagues en éventail, vitesse fulgurante.",
-          "Crit ×2.5 au NV6, cooldown réduit au NV10.",
-          "Joue au plus près — le plus rapide, le plus fragile.",
-        ],
-      },
-      {
-        title: "Objets et magie",
-        lines: [
-          "Parchemins: E lance une Boule de Feu.",
-          "Nourriture: récupère un point de vie.",
-          "Potions: boostent ta vitesse déjà élevée.",
-          "Bouclier: vital pour survivre en mêlée.",
-        ],
-      },
-      {
-        title: "Survivre au donjon",
-        lines: [
-          "Espace / Clic: double dague en éventail.",
-          "MAJ: dash pour entrer/sortir frappe.",
-          "Tue la vague, ramasse la clé, suis la porte.",
-          "P / Échap: pause avec rappel des règles.",
-        ],
-      },
+      { title: "🗡️ Filou — L'ombre", lines: ["Deux dagues en éventail, vitesse fulgurante.", "Crit ×2.5 au NV6, cooldown réduit au NV10.", "Joue au plus près — le plus rapide, le plus fragile."] },
+      { title: "Objets et magie", lines: ["Parchemins: E lance une Boule de Feu.", "Nourriture: récupère un point de vie.", "Potions: boostent ta vitesse déjà élevée.", "Bouclier: vital pour survivre en mêlée."] },
+      { title: "Survivre au donjon", lines: ["Espace / Clic: double dague en éventail.", "MAJ: dash pour entrer/sortir frappe.", "Tue la vague, ramasse la clé, suis la porte.", "P / Échap: pause avec rappel des règles."] },
     ],
   };
 
@@ -1570,36 +1518,38 @@ export function drawOnboarding(ctx: CanvasRenderingContext2D, canvasW: number, c
   ctx.fillText(page.title, tx, titleY);
 
   // ── TEXT LINES ──
-  ctx.font = `${Math.min(canvasW * 0.021, 18)}px 'Segoe UI', system-ui, sans-serif`;
+  const fontSize = Math.min(panelW * 0.026, 18);
+  ctx.font = `${fontSize}px 'Segoe UI', system-ui, sans-serif`;
   ctx.fillStyle = "#e8dcc6";
-  const lineStartY = titleY + 38;
+  const lineStartY = titleY + fontSize + 10;
+  const lineH = fontSize + 8;
   page.lines.forEach((line, i) => {
-    if (line) ctx.fillText(line, tx, lineStartY + i * 30);
+    if (line) ctx.fillText(line, tx, lineStartY + i * lineH);
   });
 
   // ── HERO BOX (anchored at panel bottom) ──
   const classLabel = { guerrier: "Guerrier", ranger: "Ranger", filou: "Filou" }[state.heroClass];
   const classColor = { guerrier: "#ff6644", ranger: "#44cc66", filou: "#bb66ff" }[state.heroClass];
-  const boxH = 56;
-  const boxY = py + panelH - boxH - 14;
+  const boxH = Math.min(panelH * 0.09, 56);
+  const boxY = py + panelH - boxH - innerPad;
   ctx.fillStyle = "rgba(255,210,80,0.14)";
-  ctx.fillRect(tx, boxY, panelW * 0.92, boxH);
+  ctx.fillRect(tx, boxY, panelW - innerPad * 3, boxH);
   ctx.strokeStyle = "rgba(255,210,80,0.38)";
-  ctx.strokeRect(tx, boxY, panelW * 0.92, boxH);
+  ctx.strokeRect(tx, boxY, panelW - innerPad * 3, boxH);
   ctx.fillStyle = classColor;
-  ctx.font = `bold ${Math.min(canvasW * 0.02, 17)}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText(`Héros sélectionné: ${classLabel}`, tx + 18, boxY + 10);
+  ctx.font = `bold ${Math.min(panelW * 0.024, 17)}px 'Segoe UI', system-ui, sans-serif`;
+  ctx.fillText(`Héros sélectionné: ${classLabel}`, tx + 14, boxY + 10);
   ctx.fillStyle = "#cfc6b6";
-  ctx.font = `${Math.min(canvasW * 0.017, 13)}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText(step === 2 ? "Entrée / Espace: entrer dans le donjon" : "Entrée / Espace: continuer · Retour: précédent · 1/2/3: classe", tx + 18, boxY + 32);
+  ctx.font = `${Math.min(panelW * 0.02, 13)}px 'Segoe UI', system-ui, sans-serif`;
+  ctx.fillText(step === 2 ? "Entrée / Espace: entrer dans le donjon" : "Entrée / Espace: continuer · Retour: précédent · 1/2/3: classe", tx + 14, boxY + 30);
 
   // ── PAGE DOTS ──
   ctx.textAlign = "center";
-  const dotsY = py + panelH + 20;
+  const dotsY = py + panelH + 18;
   for (let i = 0; i < 3; i++) {
     ctx.fillStyle = i === step ? "#ffd66b" : "rgba(255,255,255,0.22)";
     ctx.beginPath();
-    ctx.arc(cx - 20 + i * 20, dotsY, 5, 0, Math.PI * 2);
+    ctx.arc((canvasW / 2) - 20 + i * 20, dotsY, 5, 0, Math.PI * 2);
     ctx.fill();
   }
 }
