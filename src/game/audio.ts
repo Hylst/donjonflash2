@@ -16,7 +16,8 @@ export class GameAudio {
   private intensity = 1;
   private muted = false;
   private musicOn = true;
-  private musicElement: HTMLAudioElement | null = null;
+  private musicBuffer: AudioBuffer | null = null;
+  private musicSource: AudioBufferSourceNode | null = null;
   private chordIndex = 0;
   // Am - F - C - G progression
   private readonly chords = [
@@ -61,7 +62,7 @@ export class GameAudio {
       this.drone.connect(this.musicFilter);
 
       this.startDrone();
-      this.loadMusic();
+      this.loadMusic('./awakening_tension.mp3');
     }
     if (this.ctx.state === "suspended") await this.ctx.resume();
   }
@@ -137,22 +138,37 @@ export class GameAudio {
   }
 
   // ── MUSIC ──
-  private loadMusic(): void {
-    if (typeof window === 'undefined') return;
-    this.musicElement = new Audio('https://hylst.fr/hml/awakening_tension.mp3');
-    this.musicElement.loop = true;
-    this.musicElement.volume = 0.15;
-    this.musicElement.play().catch(() => {});
-    this.musicOn = true;
+  private async loadMusic(url: string): Promise<void> {
+    if (!this.ctx) return;
+    try {
+      const resp = await fetch(url);
+      const ab = await resp.arrayBuffer();
+      this.musicBuffer = await this.ctx.decodeAudioData(ab);
+      const source = this.ctx.createBufferSource();
+      source.buffer = this.musicBuffer;
+      source.loop = true;
+      source.connect(this.music!);
+      source.start();
+      this.musicSource = source;
+      this.musicOn = true;
+    } catch (e) {
+      console.warn('MP3 indisponible, fallback procedural');
+      this.scheduleMusic();
+    }
   }
 
   toggleMusic(): boolean {
-    if (!this.musicElement) return false;
+    if (!this.musicBuffer) return false;
     if (this.musicOn) {
-      this.musicElement.pause();
+      if (this.musicSource) { try { this.musicSource.stop(); } catch(e) {} this.musicSource = null; }
       this.musicOn = false;
     } else {
-      this.musicElement.play().catch(() => {});
+      const source = this.ctx!.createBufferSource();
+      source.buffer = this.musicBuffer!;
+      source.loop = true;
+      source.connect(this.music!);
+      source.start();
+      this.musicSource = source;
       this.musicOn = true;
     }
     return this.musicOn;
