@@ -15,6 +15,9 @@ export class GameAudio {
   private musicTimer = 0;
   private intensity = 1;
   private muted = false;
+  private musicOn = true;
+  private musicBuffer: AudioBuffer | null = null;
+  private musicSource: AudioBufferSourceNode | null = null;
   private chordIndex = 0;
   // Am - F - C - G progression
   private readonly chords = [
@@ -59,7 +62,7 @@ export class GameAudio {
       this.drone.connect(this.musicFilter);
 
       this.startDrone();
-      this.scheduleMusic();
+      this.loadMusicMP3();
     }
     if (this.ctx.state === "suspended") await this.ctx.resume();
   }
@@ -135,6 +138,48 @@ export class GameAudio {
   }
 
   // ── MUSIC ──
+  private async loadMusicMP3(): Promise<void> {
+    if (!this.ctx) return;
+    try {
+      const resp = await fetch('https://hylst.fr/hml/awakening_tension.mp3');
+      const buf = await resp.arrayBuffer();
+      this.musicBuffer = await this.ctx.decodeAudioData(buf);
+      const source = this.ctx.createBufferSource();
+      source.buffer = this.musicBuffer;
+      source.loop = true;
+      source.connect(this.music!);
+      source.start();
+      this.musicSource = source;
+      this.musicOn = true;
+    } catch (e) {
+      console.warn('MP3 indisponible, utilisation musique procédurale');
+      this.scheduleMusic();
+    }
+  }
+
+  stopMP3(): void {
+    if (this.musicSource) {
+      try { this.musicSource.stop(); } catch (e) {}
+      this.musicSource = null;
+    }
+    this.musicOn = false;
+  }
+
+  toggleMusic(): boolean {
+    if (this.musicOn) {
+      this.stopMP3();
+    } else if (this.musicBuffer) {
+      const source = this.ctx!.createBufferSource();
+      source.buffer = this.musicBuffer;
+      source.loop = true;
+      source.connect(this.music!);
+      source.start();
+      this.musicSource = source;
+      this.musicOn = true;
+    }
+    return this.musicOn;
+  }
+
   private scheduleMusic(): void {
     if (!this.ctx || !this.music) return;
     const step = () => {
