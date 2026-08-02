@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import {
   GameState,
   createInitialState,
@@ -332,7 +332,19 @@ export default function App() {
     };
   }, []);
 
-  const phase = stateRef.current?.phase;
+  const [phase, setPhase] = useState<GameState["phase"] | undefined>(undefined);
+  const [showInfo, setShowInfo] = useState(false);
+
+  // Les boutons superposes ci-dessous dependent de la phase de jeu, mais la boucle de rendu
+  // (via requestAnimationFrame) ne declenche jamais de re-render React : elle dessine
+  // directement sur le canvas. Sans ce sondage, `phase` resterait fige a sa valeur du tout
+  // premier rendu (avant meme l'init de stateRef), et ces boutons ne s'afficheraient jamais.
+  useEffect(() => {
+    const id = setInterval(() => {
+      setPhase((prev) => (stateRef.current && stateRef.current.phase !== prev ? stateRef.current.phase : prev));
+    }, 150);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <div
@@ -382,6 +394,36 @@ export default function App() {
             </button>
           )}
         </>
+      )}
+
+      {/* ── Bouton Infos (ecran titre uniquement) ── */}
+      {phase === "title" && (
+        <button
+          className="absolute top-4 right-4 z-20 px-4 py-2 rounded-lg border border-white/20 bg-black/50 text-white/60 text-sm font-bold active:bg-white/10 transition-all select-none"
+          onClick={() => setShowInfo(true)}
+          onTouchStart={(e) => { e.preventDefault(); setShowInfo(true); }}
+        >
+          ℹ️ Infos
+        </button>
+      )}
+
+      {showInfo && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" onClick={() => setShowInfo(false)}>
+          <div className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-yellow-500/30 bg-[#0a0806] shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 space-y-3.5 text-sm leading-relaxed text-white/80">
+              <h3 className="text-xl font-black text-yellow-400">Comment ce jeu a été fait</h3>
+              <p><strong className="text-white">Stack :</strong> React 19, TypeScript 5.9, Tailwind CSS 4, Vite 7, compilé en un seul fichier HTML. Les contrôles sont des boutons HTML superposés au Canvas, mais tout le reste (décor, personnages, combat) est dessiné en Canvas.</p>
+              <p><strong className="text-white">Graphismes :</strong> rendu Canvas 2D avec de vraies textures chargées en image pour le sol et les murs (pas uniquement des formes vectorielles), plus des effets de particules dessinés à la volée.</p>
+              <p><strong className="text-white">Musique &amp; sons :</strong> hybride — le morceau d'ambiance principal est un fichier audio chargé, tandis que les effets sonores et la nappe de tension sont synthétisés en direct avec l'API Web Audio.</p>
+              <p><strong className="text-white">Interactions :</strong> boutons tactiles superposés pour l'attaque, le sort et le déplacement, clavier en alternative sur ordinateur.</p>
+              <p><strong className="text-white">Architecture :</strong> logique de jeu pure (<code>engine.ts</code>) séparée du rendu (<code>renderer.ts</code>), l'état du jeu vit dans une référence mise à jour à chaque frame plutôt que dans le state React.</p>
+              <p><strong className="text-white">Algorithmes notables :</strong> génération procédurale des salles et des vagues d'ennemis, plusieurs classes de héros avec des attaques et sorts propres, montée en difficulté progressive au fil des salles.</p>
+            </div>
+            <div className="border-t border-white/10 p-4 text-center">
+              <button onClick={() => setShowInfo(false)} className="px-6 py-2.5 rounded-xl font-black text-black bg-yellow-400 hover:brightness-110 active:scale-95 transition-all">Fermer</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── Class selection touch buttons (title/onboarding) ── */}
