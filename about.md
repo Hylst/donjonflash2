@@ -15,4 +15,4 @@ Version alternative de DonjonFlash — vagues d'assaut geometriques, classes de 
 - Canvas 2D + Web Audio API
 
 ## Contact
-- Email : geoffroy.streit@gmail.com
+- Email : geoffroy.streit@ik.me
