@@ -86,9 +86,6 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState, canvasW:
   drawFloatingTexts(ctx, state);
 
   ctx.restore();
-
-  // HUD drawn in screen space
-  drawHUD(ctx, state, canvasW, canvasH);
 }
 
 // ──────────────────────────────────────────────
@@ -1219,6 +1216,7 @@ function drawFloatingTexts(ctx: CanvasRenderingContext2D, state: GameState): voi
 export function drawHUD(ctx: CanvasRenderingContext2D, state: GameState, canvasW: number, _canvasH: number): void {
   const pad = 16;
   const hudH = 50;
+  const compact = canvasW < 600;
 
   // HUD bar
   ctx.fillStyle = "rgba(8,6,15,0.92)";
@@ -1266,12 +1264,14 @@ export function drawHUD(ctx: CanvasRenderingContext2D, state: GameState, canvasW
   ctx.fillStyle = "#b9d7ff";
   ctx.font = "12px 'Segoe UI', system-ui, sans-serif";
   ctx.textAlign = "left";
-  const classText = `${classLabel} niv.${state.heroLevel} · ${state.roomsCleared}/${state.maxRooms} salles · Parchemins ${state.scrolls}`;
+  const classText = compact
+    ? `${classLabel} niv.${state.heroLevel} · ${state.roomsCleared}/${state.maxRooms}`
+    : `${classLabel} niv.${state.heroLevel} · ${state.roomsCleared}/${state.maxRooms} salles · Parchemins ${state.scrolls}`;
   ctx.fillText(classText, pad, hudH / 2 + 16);
   const classTextW = ctx.measureText(classText).width;
 
   // ── HEALTH BAR (after class text) ──
-  const hbW = 100, hbH = 12;
+  const hbW = compact ? 80 : 100, hbH = 12;
   const hbX = pad + classTextW + 16;
   const hbY = hudH / 2 + 16 - hbH / 2;
   const hp = state.health / state.maxHealth;
@@ -1321,50 +1321,57 @@ export function drawHUD(ctx: CanvasRenderingContext2D, state: GameState, canvasW
   const aliveEnemies = state.enemies.filter((e) => e.alive).length;
   if (state.phase === "fighting" || state.phase === "key_spawned") {
     ctx.fillStyle = "#cc6666";
-    ctx.font = "11px 'Segoe UI', system-ui, sans-serif";
+    ctx.font = `${compact ? 10 : 11}px 'Segoe UI', system-ui, sans-serif`;
     ctx.textAlign = "right";
     ctx.fillText(`Ennemis: ${aliveEnemies}`, rightX, hudH / 2 + 16);
   }
 
-  // Key indicator
-  if (state.key && !state.key.collected) {
-    ctx.fillStyle = "#ffd700";
-    ctx.font = "11px 'Segoe UI', system-ui, sans-serif";
-    ctx.textAlign = "right";
-    ctx.fillText("🗝️ Clé!", rightX, hudH / 2 - 8);
-  }
-  if (state.door.open) {
-    ctx.fillStyle = "#44ff44";
-    ctx.font = "11px 'Segoe UI', system-ui, sans-serif";
-    ctx.textAlign = "right";
-    ctx.fillText("🚪 Porte ouverte!", rightX, hudH / 2 - 8);
-  }
+  // Cle et porte : bandeau centre sous le HUD, pour ne pas recouvrir le score.
+  if (state.key && !state.key.collected) drawHudBanner(ctx, canvasW, hudH, "🗝️ Clé!", "#ffd700");
+  if (state.door.open) drawHudBanner(ctx, canvasW, hudH, "🚪 Porte ouverte!", "#44ff44");
 
-  // Boost icons with colored badges
+  // Boost icons with colored badges (desktop uniquement, faute de place sur mobile)
   let boostX = hbX + hbW + 10;
   const boostY = hudH / 2 + 16;
   ctx.textAlign = "left";
   ctx.font = "10px 'Segoe UI', system-ui, sans-serif";
-  if (state.speedBoostTimer > 0) {
+  if (!compact && state.speedBoostTimer > 0) {
     ctx.fillStyle = "rgba(100,200,255,0.2)";
     ctx.fillRect(boostX - 2, boostY - 8, 50, 14);
     ctx.fillStyle = "#66ccff";
     ctx.fillText(`🏃${Math.ceil(state.speedBoostTimer)}s`, boostX, boostY);
     boostX += 54;
   }
-  if (state.damageBoostTimer > 0) {
+  if (!compact && state.damageBoostTimer > 0) {
     ctx.fillStyle = "rgba(255,100,100,0.2)";
     ctx.fillRect(boostX - 2, boostY - 8, 50, 14);
     ctx.fillStyle = "#ff6666";
     ctx.fillText(`⚔️${Math.ceil(state.damageBoostTimer)}s`, boostX, boostY);
     boostX += 54;
   }
-  if (state.shieldTimer > 0) {
+  if (!compact && state.shieldTimer > 0) {
     ctx.fillStyle = "rgba(255,215,0,0.2)";
     ctx.fillRect(boostX - 2, boostY - 8, 60, 14);
     ctx.fillStyle = "#ffd700";
     ctx.fillText(`🛡️${Math.ceil(state.shieldTimer)}s`, boostX, boostY);
   }
+}
+
+function drawHudBanner(ctx: CanvasRenderingContext2D, canvasW: number, hudH: number, text: string, color: string): void {
+  ctx.save();
+  ctx.font = "bold 11px 'Segoe UI', system-ui, sans-serif";
+  const width = ctx.measureText(text).width + 20;
+  const x = canvasW / 2 - width / 2;
+  ctx.fillStyle = "rgba(8,6,15,0.88)";
+  ctx.fillRect(x, hudH + 4, width, 18);
+  ctx.strokeStyle = "rgba(180,140,60,0.4)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, hudH + 4, width, 18);
+  ctx.fillStyle = color;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, canvasW / 2, hudH + 13);
+  ctx.restore();
 }
 
 // ──────────────────────────────────────────────
@@ -1437,7 +1444,7 @@ export function drawTitle(ctx: CanvasRenderingContext2D, canvasW: number, canvas
   });
 
   // ── DIFFICULTY SELECTOR ──
-  const diffY = modeY + 36;
+  const diffY = modeY + 44;
   const diffs = (Object.keys(DIFFICULTY_CONFIG) as Difficulty[]);
   const diffBtnW = Math.min(canvasW * 0.1, 72);
   const diffGap = 6;
@@ -1446,7 +1453,7 @@ export function drawTitle(ctx: CanvasRenderingContext2D, canvasW: number, canvas
   ctx.fillStyle = "#888";
   ctx.font = `${Math.min(canvasW * 0.014, 10)}px 'Segoe UI', system-ui, sans-serif`;
   ctx.textAlign = "center";
-  ctx.fillText("DIFFICULTÉ", cx, diffY - 4);
+  ctx.fillText("DIFFICULTÉ", cx, diffY - 8);
   diffs.forEach((d, i) => {
     const dx = diffStartX + i * (diffBtnW + diffGap);
     const sel = state.difficulty === d;
@@ -1532,9 +1539,13 @@ export function drawTitle(ctx: CanvasRenderingContext2D, canvasW: number, canvas
     ctx.fillStyle = selected ? "rgba(200,180,140,0.8)" : "rgba(150,140,120,0.5)";
     ctx.font = `italic ${Math.min(canvasW * 0.013, 9)}px 'Georgia', serif`;
     const loreLines = cls.lore.split("\n");
-    loreLines.forEach((line, li) => {
-      ctx.fillText(line.trim(), cardCx, cardY + 120 + li * 12);
-    });
+    const loreLineH = cardH < 200 ? 9 : 12;
+    const loreStartY = Math.min(cardY + 120, cardY + cardH - 30 - 2 * loreLineH);
+    if (cardH >= 150) {
+      loreLines.forEach((line, li) => {
+        ctx.fillText(line.trim(), cardCx, loreStartY + li * loreLineH);
+      });
+    }
 
     ctx.fillStyle = selected ? cls.color : "#666";
     ctx.font = `${Math.min(canvasW * 0.014, 10)}px 'Segoe UI', system-ui, sans-serif`;
@@ -1558,12 +1569,13 @@ export function drawTitle(ctx: CanvasRenderingContext2D, canvasW: number, canvas
 
   // ── START PROMPT ──
   const pulse = 0.5 + 0.5 * Math.sin(t * 3);
+  const promptText = canvasW < 600 ? "TOUCHEZ UNE CARTE PUIS L'ÉCRAN" : "ESPACE ou CLIQUE pour commencer";
   ctx.save();
   ctx.globalAlpha = pulse;
   ctx.fillStyle = "#ffcc00";
   ctx.font = `bold ${Math.min(canvasW * 0.024, 16)}px 'Segoe UI', system-ui, sans-serif`;
   ctx.textAlign = "center";
-  ctx.fillText("ESPACE ou CLIQUE pour commencer", cx, canvasH * 0.95);
+  ctx.fillText(promptText, cx, canvasH * 0.95);
   ctx.restore();
 }
 

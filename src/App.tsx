@@ -78,11 +78,9 @@ export default function App() {
     if (state.phase === "title") {
       render(ctx, state, cw, ch); // render empty room behind
       drawTitle(ctx, cw, ch, state);
-      drawHUD(ctx, state, cw, ch);
     } else if (state.phase === "onboarding") {
       render(ctx, state, cw, ch);
       drawOnboarding(ctx, cw, ch, state);
-      drawHUD(ctx, state, cw, ch);
     } else if (state.phase === "paused") {
       render(ctx, state, cw, ch);
       drawHUD(ctx, state, cw, ch);
@@ -262,7 +260,7 @@ export default function App() {
           }
 
           // Difficulty buttons
-          const diffY = modeY + 36;
+          const diffY = modeY + 44;
           const diffKeys = ["very_easy", "easy", "normal", "hard", "very_hard"] as const;
           const diffBtnW = Math.min(cw * 0.1, 72);
           const diffGap = 6;
@@ -399,11 +397,11 @@ export default function App() {
       {/* ── Bouton Infos (ecran titre uniquement) ── */}
       {phase === "title" && (
         <button
-          className="absolute top-4 right-4 z-20 px-4 py-2 rounded-lg border border-white/20 bg-black/50 text-white/60 text-sm font-bold active:bg-white/10 transition-all select-none"
+          className="absolute top-4 right-4 z-20 px-2 py-1 sm:px-4 sm:py-2 rounded-lg border border-white/20 bg-black/50 text-white/60 text-lg sm:text-sm font-bold active:bg-white/10 transition-all select-none"
           onClick={() => setShowInfo(true)}
           onTouchStart={(e) => { e.preventDefault(); setShowInfo(true); }}
         >
-          ℹ️ Infos
+          ℹ️<span className="hidden sm:inline"> Infos</span>
         </button>
       )}
 
@@ -426,8 +424,8 @@ export default function App() {
         </div>
       )}
 
-      {/* ── Class selection touch buttons (title/onboarding) ── */}
-      {(phase === "title" || phase === "onboarding") && (
+      {/* ── Class selection touch buttons (onboarding uniquement) ── */}
+      {phase === "onboarding" && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex gap-3 select-none">
           {(["guerrier", "ranger", "filou"] as const).map((cls, i) => {
             const selected = stateRef.current?.heroClass === cls;
@@ -460,7 +458,9 @@ export default function App() {
         </div>
       )}
 
-      {/* ── Action buttons ── */}
+      {/* ── Action buttons (jeu uniquement) ── */}
+      {phase !== "title" && phase !== "onboarding" && (
+        <>
       <button
         className="absolute bottom-6 right-6 z-10 flex h-16 w-16 items-center justify-center rounded-full border-2 border-yellow-500/50 bg-black/60 text-2xl text-yellow-400 shadow-lg shadow-yellow-900/30 active:bg-yellow-600/30 active:scale-90 transition-transform select-none"
         onTouchStart={(e) => {
@@ -621,6 +621,8 @@ export default function App() {
         </button>
         <div />
       </div>
+        </>
+      )}
     </div>
   );
 }

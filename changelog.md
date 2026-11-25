@@ -1,5 +1,18 @@
 # Changelog — DonjonFlash 2
 
+## [1.3.0] 2026-11-25
+
+### Corrige
+- Ecran titre sur mobile : le HUD Canvas, le selecteur de classe HTML et le bouton Infos se recouvraient. Le HUD et les controles tactiles ne sont plus dessines sur le titre ni pendant l'onboarding, le selecteur de classe reste disponible pendant l'onboarding et le bouton Infos passe en icone seule sous 640 px.
+- Etiquette DIFFICULTE : espacement augmente avec les boutons de mode, et test de clic aligne sur la nouvelle position des cartes (8 px d'ecart corriger).
+- Cartes de classe sur ecran court (320 x 568) : le texte d'ambiance recouvrait la ligne de statistiques. Les lignes se compressent sous 200 px de hauteur de carte et disparaissent sous 150 px.
+- HUD en jeu : texte de classe raccourci sous 600 px, barre de vie reduite, indicateurs de cle et de porte deplaces dans un bandeau centre sous le HUD (ils recouvraient le score), icones de boost masquees sur mobile faute de place.
+
+### Verifie
+- QA Playwright sur 1792 x 984, 1440 x 900, 1024 x 768, 768 x 1024, 390 x 844 et 320 x 568 : aucun chevauchement de boutons HTML, aucune erreur console.
+- Parcours complet : selection de classe au clic, onboarding, apparition des controles tactiles, attaque, aux six resolutions.
+- Build unique de 295 712 octets, aucune requete externe supplementaire.
+
 ## [1.2.0] 2026-08-03
 
 ### Ajoute
