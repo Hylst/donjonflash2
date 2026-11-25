@@ -42,3 +42,7 @@ npm run dev      # Serveur de developpement
 npm run build    # Build single-file
 npm run preview  # Preview du build
 ```
+
+## Licence
+
+Code : AGPL-3.0-or-later. Voir `LICENSE`.
