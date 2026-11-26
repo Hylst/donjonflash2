@@ -1,4 +1,4 @@
-# DonjonFlash 2
+# Donjon Éclair 2
 
 **Action-RPG tactique procedural — vagues d'assaut geometriques.**
 

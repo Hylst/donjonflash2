@@ -1,4 +1,4 @@
-# Features — DonjonFlash 2
+# Features — Donjon Éclair 2
 
 ## Gameplay
 - [x] Action-RPG tactique procedural

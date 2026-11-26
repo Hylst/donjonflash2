@@ -1,4 +1,4 @@
-# Structure — DonjonFlash 2
+# Structure — Donjon Éclair 2
 
 ## Arborescence monorepo
 ```

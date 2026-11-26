@@ -1,6 +1,6 @@
-# A propos de DonjonFlash 2
+# A propos de Donjon Éclair 2
 
-**DonjonFlash 2** est un Action-RPG tactique procedural developpe par **Geoffroy Streit** (alias **Hylst**).
+**Donjon Éclair 2** est un Action-RPG tactique procedural developpe par **Geoffroy Streit** (alias **Hylst**).
 
 ## Le jeu
 Version alternative de DonjonFlash — vagues d'assaut geometriques, classes de heros, donjons infinis et boss. Un gameplay plus tactique et rapide que l'original.

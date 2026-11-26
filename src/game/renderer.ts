@@ -1237,7 +1237,7 @@ export function drawHUD(ctx: CanvasRenderingContext2D, state: GameState, canvasW
   ctx.fillStyle = "#ffd700";
   ctx.font = "bold 14px 'Segoe UI', system-ui, sans-serif";
   ctx.textAlign = "left";
-  ctx.fillText("⚔️ DONJON FLASH", pad, hudH / 2 - 8);
+  ctx.fillText("⚔️ DONJON ÉCLAIR", pad, hudH / 2 - 8);
 
   // Right: Score
   ctx.fillStyle = "#ffcc00";
@@ -1408,7 +1408,7 @@ export function drawTitle(ctx: CanvasRenderingContext2D, canvasW: number, canvas
   ctx.font = `bold ${Math.min(canvasW * 0.055, 44)}px 'Georgia', serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("⚔️  DONJON FLASH  ⚔️", cx, canvasH * 0.07);
+  ctx.fillText("⚔️  DONJON ÉCLAIR  ⚔️", cx, canvasH * 0.07);
   ctx.restore();
 
   ctx.fillStyle = "#aa8844";
