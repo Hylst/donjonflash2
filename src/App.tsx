@@ -410,11 +410,11 @@ export default function App() {
           <div className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-yellow-500/30 bg-[#0a0806] shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 space-y-3.5 text-sm leading-relaxed text-white/80">
               <h3 className="text-xl font-black text-yellow-400">Comment ce jeu a été fait</h3>
-              <p><strong className="text-white">Stack :</strong> React 19, TypeScript 5.9, Tailwind CSS 4, Vite 7, compilé en un seul fichier HTML. Les contrôles sont des boutons HTML superposés au Canvas, mais tout le reste (décor, personnages, combat) est dessiné en Canvas.</p>
+              <p><strong className="text-white">Technologies :</strong> React 19, TypeScript 5.9, Tailwind CSS 4, Vite 7, compilé en un seul fichier HTML. Les contrôles sont des boutons HTML superposés au Canvas, mais tout le reste (décor, personnages, combat) est dessiné en Canvas.</p>
               <p><strong className="text-white">Graphismes :</strong> rendu Canvas 2D avec de vraies textures chargées en image pour le sol et les murs (pas uniquement des formes vectorielles), plus des effets de particules dessinés à la volée.</p>
-              <p><strong className="text-white">Musique &amp; sons :</strong> hybride — le morceau d'ambiance principal est un fichier audio chargé, tandis que les effets sonores et la nappe de tension sont synthétisés en direct avec l'API Web Audio.</p>
+              <p><strong className="text-white">Musique &amp; sons :</strong> hybride : le morceau d'ambiance principal est un fichier audio chargé, tandis que les effets sonores et la nappe de tension sont synthétisés en direct avec l'API Web Audio.</p>
               <p><strong className="text-white">Interactions :</strong> boutons tactiles superposés pour l'attaque, le sort et le déplacement, clavier en alternative sur ordinateur.</p>
-              <p><strong className="text-white">Architecture :</strong> logique de jeu pure (<code>engine.ts</code>) séparée du rendu (<code>renderer.ts</code>), l'état du jeu vit dans une référence mise à jour à chaque frame plutôt que dans le state React.</p>
+              <p><strong className="text-white">Architecture :</strong> logique de jeu pure (<code>engine.ts</code>) séparée du rendu (<code>renderer.ts</code>), l'état du jeu vit dans une référence mise à jour à chaque image plutôt que dans l'état React.</p>
               <p><strong className="text-white">Algorithmes notables :</strong> génération procédurale des salles et des vagues d'ennemis, plusieurs classes de héros avec des attaques et sorts propres, montée en difficulté progressive au fil des salles.</p>
             </div>
             <div className="border-t border-white/10 p-4 text-center">
@@ -430,7 +430,7 @@ export default function App() {
           {(["guerrier", "ranger", "filou"] as const).map((cls, i) => {
             const selected = stateRef.current?.heroClass === cls;
             const icons = ["⚔️", "🏹", "🗡️"];
-            const labels = ["Guerrier", "Ranger", "Filou"];
+            const labels = ["Guerrier", "Archer", "Filou"];
             return (
               <button
                 key={cls}

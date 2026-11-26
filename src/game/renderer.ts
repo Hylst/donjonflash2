@@ -1,5 +1,5 @@
 // ============================================================
-// DONJON FLASH — Advanced Renderer v2
+// DONJON ÉCLAIR : moteur de rendu v2
 // Par Hylst - Geoffroy avec l'aide d'une IA
 // ============================================================
 
@@ -1260,7 +1260,7 @@ export function drawHUD(ctx: CanvasRenderingContext2D, state: GameState, canvasW
 
   // ── ROW 3 (y = 41) ──
   // Left: Class info
-  const classLabel = { guerrier: "Guerrier", ranger: "Ranger", filou: "Filou" }[state.heroClass];
+  const classLabel = { guerrier: "Guerrier", ranger: "Archer", filou: "Filou" }[state.heroClass];
   ctx.fillStyle = "#b9d7ff";
   ctx.font = "12px 'Segoe UI', system-ui, sans-serif";
   ctx.textAlign = "left";
@@ -1420,7 +1420,7 @@ export function drawTitle(ctx: CanvasRenderingContext2D, canvasW: number, canvas
   ctx.fillStyle = "rgba(200,180,140,0.6)";
   ctx.font = `${Math.min(canvasW * 0.015, 11)}px 'Georgia', serif`;
   ctx.fillText("Sous les ruines d'un empire oublié, un donjon se régénère sans cesse.", cx, loreY);
-  ctx.fillText("Trois héros s'élancent dans les ténèbres — qui survivra ?", cx, loreY + 16);
+  ctx.fillText("Trois héros s'élancent dans les ténèbres. Qui survivra ?", cx, loreY + 16);
 
   // ── MODE SELECTOR (1P / 2P) ──
   const modeY = loreY + 42;
@@ -1472,8 +1472,8 @@ export function drawTitle(ctx: CanvasRenderingContext2D, canvasW: number, canvas
   // ── CLASS CARDS ──
   const classes = [
     { key: "1", id: "guerrier" as const, icon: "⚔️", label: "Guerrier", desc: "Épée large, solide,\n idéal pour débuter", lore: "Ancien chevalier déchu,\nil protège les siens par\nla force brute.", color: "#ff6644", stats: "❤️ 6 PV  ·  🛡️ Armure+", colorBg: "rgba(255,60,30,0.08)" },
-    { key: "2", id: "ranger" as const, icon: "🏹", label: "Ranger", desc: "Arc précis, tir rapide\n à distance", lore: "Chasseur des ombres,\nil frappe sans que l'ennemi\nne voie la flèche.", color: "#44cc66", stats: "❤️ 5 PV  ·  🎯 Double tir", colorBg: "rgba(40,200,80,0.08)" },
-    { key: "3", id: "filou" as const, icon: "🗡️", label: "Filou", desc: "Deux dagues, vitesse\n élevée, nerveux", lore: "Ombre furtive, chaque strike\nest un calcul mortel —\nvitesse et précision.", color: "#bb66ff", stats: "❤️ 4 PV  ·  ⚡ Crit ×2.5", colorBg: "rgba(160,80,255,0.08)" },
+    { key: "2", id: "ranger" as const, icon: "🏹", label: "Archer", desc: "Arc précis, tir rapide\n à distance", lore: "Chasseur des ombres,\nil frappe sans que l'ennemi\nne voie la flèche.", color: "#44cc66", stats: "❤️ 5 PV  ·  🎯 Double tir", colorBg: "rgba(40,200,80,0.08)" },
+    { key: "3", id: "filou" as const, icon: "🗡️", label: "Filou", desc: "Deux dagues, vitesse\n élevée, nerveux", lore: "Ombre furtive, chaque frappe\nest un calcul mortel :\nvitesse et précision.", color: "#bb66ff", stats: "❤️ 4 PV  ·  ⚡ Critique ×2.5", colorBg: "rgba(160,80,255,0.08)" },
   ];
 
   const cardW = Math.min(canvasW * 0.22, 180);
@@ -1555,10 +1555,10 @@ export function drawTitle(ctx: CanvasRenderingContext2D, canvasW: number, canvas
   // ── CONTROLS ──
   const ctrlY = cardY + cardH + canvasH * 0.03;
   const controls = [
-    "🎮 ZQSD / WASD / Flèches — Se déplacer",
-    "⚔️ ESPACE / CLIC — Attaque de classe",
-    "📜 E — Sort (si parchemin)    💨 MAJ — Esquive rapide",
-    "🍖 Ramasse loot    ⭐ XP → niveau → 12 salles",
+    "🎮 ZQSD / WASD / Flèches : Se déplacer",
+    "⚔️ ESPACE / CLIC : Attaque de classe",
+    "📜 E : Sort (si parchemin)    💨 MAJ : Esquive rapide",
+    "🍖 Ramasse le butin    ⭐ Expérience → niveau → 12 salles",
   ];
   ctx.font = `${Math.min(canvasW * 0.016, 11)}px 'Segoe UI', system-ui, sans-serif`;
   controls.forEach((line, i) => {
@@ -1625,19 +1625,19 @@ export function drawOnboarding(ctx: CanvasRenderingContext2D, canvasW: number, c
 
   const classPages: Record<string, Array<{ title: string; lines: string[] }>> = {
     guerrier: [
-      { title: "⚔️ Guerrier — Le rempart", lines: ["L'épée large balaye les ennemis proches.", "Solide et endurant, il encaisse les coups.", "Idéal pour débuter — le plus résistant."] },
+      { title: "⚔️ Guerrier : Le rempart", lines: ["L'épée large balaye les ennemis proches.", "Solide et endurant, il encaisse les coups.", "Idéal pour débuter : le plus résistant."] },
       { title: "Objets et magie", lines: ["Parchemins: E lance une Boule de Feu.", "Nourriture: récupère un point de vie.", "Potions: vitesse ou puissance temporaires.", "Bouclier: absorbe les contacts ennemis."] },
-      { title: "Survivre au donjon", lines: ["Espace / Clic: balayage d'épée en arc.", "MAJ: dash pour repositionner.", "Tue la vague, ramasse la clé, suis la porte.", "P / Échap: pause avec rappel des règles."] },
+      { title: "Survivre au donjon", lines: ["Espace / Clic: balayage d'épée en arc.", "MAJ : esquive pour repositionner.", "Tue la vague, ramasse la clé, suis la porte.", "P / Échap: pause avec rappel des règles."] },
     ],
     ranger: [
-      { title: "🏹 Ranger — Le chasseur", lines: ["Flèches rapides à distance, frappe précise.", "Double tir au NV3, flèche perçante au NV6.", "Garde tes distances — faible en mêlée."] },
+      { title: "🏹 Archer : Le chasseur", lines: ["Flèches rapides à distance, frappe précise.", "Double tir au NV3, flèche perçante au NV6.", "Garde tes distances : faible en mêlée."] },
       { title: "Objets et magie", lines: ["Parchemins: E lance une Nova de Gel.", "La nova ralentit les ennemis en zone.", "Nourriture: récupère un point de vie.", "Potions: vitesse ou puissance temporaires."] },
-      { title: "Survivre au donjon", lines: ["Espace / Clic: tir de flèche auto-visé.", "MAJ: dash pour esquiver les assauts.", "Tue la vague, ramasse la clé, suis la porte.", "P / Échap: pause avec rappel des règles."] },
+      { title: "Survivre au donjon", lines: ["Espace / Clic: tir de flèche auto-visé.", "MAJ : esquive pour éviter les assauts.", "Tue la vague, ramasse la clé, suis la porte.", "P / Échap: pause avec rappel des règles."] },
     ],
     filou: [
-      { title: "🗡️ Filou — L'ombre", lines: ["Deux dagues en éventail, vitesse fulgurante.", "Crit ×2.5 au NV6, cooldown réduit au NV10.", "Joue au plus près — le plus rapide, le plus fragile."] },
-      { title: "Objets et magie", lines: ["Parchemins: E lance une Boule de Feu.", "Nourriture: récupère un point de vie.", "Potions: boostent ta vitesse déjà élevée.", "Bouclier: vital pour survivre en mêlée."] },
-      { title: "Survivre au donjon", lines: ["Espace / Clic: double dague en éventail.", "MAJ: dash pour entrer/sortir frappe.", "Tue la vague, ramasse la clé, suis la porte.", "P / Échap: pause avec rappel des règles."] },
+      { title: "🗡️ Filou : L'ombre", lines: ["Deux dagues en éventail, vitesse fulgurante.", "Critique ×2.5 au NV6, recharge réduite au NV10.", "Joue au plus près : le plus rapide, le plus fragile."] },
+      { title: "Objets et magie", lines: ["Parchemins: E lance une Boule de Feu.", "Nourriture: récupère un point de vie.", "Potions: augmentent ta vitesse déjà élevée.", "Bouclier: vital pour survivre en mêlée."] },
+      { title: "Survivre au donjon", lines: ["Espace / Clic: double dague en éventail.", "MAJ : esquive pour entrer et sortir de la mêlée.", "Tue la vague, ramasse la clé, suis la porte.", "P / Échap: pause avec rappel des règles."] },
     ],
   };
 
@@ -1657,7 +1657,7 @@ export function drawOnboarding(ctx: CanvasRenderingContext2D, canvasW: number, c
   });
 
   // ── HERO BOX (anchored at panel bottom) ──
-  const classLabel = { guerrier: "Guerrier", ranger: "Ranger", filou: "Filou" }[state.heroClass];
+  const classLabel = { guerrier: "Guerrier", ranger: "Archer", filou: "Filou" }[state.heroClass];
   const classColor = { guerrier: "#ff6644", ranger: "#44cc66", filou: "#bb66ff" }[state.heroClass];
   const boxH = Math.min(panelH * 0.09, 56);
   const boxY = py + panelH - boxH - innerPad;
@@ -1705,7 +1705,7 @@ export function drawPauseOverlay(ctx: CanvasRenderingContext2D, canvasW: number,
   ctx.font = `bold ${Math.min(canvasW * 0.044, 38)}px 'Georgia', serif`;
   ctx.fillText("PAUSE", canvasW / 2, y + 28);
 
-  const classLabel = { guerrier: "Guerrier", ranger: "Ranger", filou: "Filou" }[state.heroClass];
+  const classLabel = { guerrier: "Guerrier", ranger: "Archer", filou: "Filou" }[state.heroClass];
   ctx.fillStyle = "#d8d0bd";
   ctx.font = `${Math.min(canvasW * 0.019, 16)}px 'Segoe UI', system-ui, sans-serif`;
   ctx.fillText(`${classLabel} niv.${state.heroLevel} · Salle ${state.roomLevel}/${state.maxRooms} · XP ${state.xp}/${state.xpToNext} · Parchemins ${state.scrolls}`, canvasW / 2, y + 82);

@@ -1,5 +1,5 @@
 // ============================================================
-// DONJON FLASH — Advanced Game Engine v2
+// DONJON ÉCLAIR : moteur de jeu v2
 // Par Hylst - Geoffroy avec l'aide d'une IA
 // ============================================================
 
