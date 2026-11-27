@@ -80,3 +80,8 @@
 - [ ] Ajouter mode Endless avec leaderboard
 - [ ] Sauvegarde localStorage
 - [ ] Optimiser performances mobiles
+
+## Audit du 27/11/2026
+
+- [ ] Ajouter un test de victoire à la salle 12.
+- [ ] Vérifier que le crédit reste visible sur l'écran d'accueil.

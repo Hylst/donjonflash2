@@ -5,7 +5,7 @@
 Joue sur : [games.hylst.fr/donjonflash2/](https://games.hylst.fr/donjonflash2/)
 
 ## Comment jouer
-Choisis ta classe de heros, affronte des vagues d'ennemis proceduraux, collecte le loot et monte en niveau. Explore des donjons infinis avec des boss tous les 5 niveaux.
+Choisis ta classe de heros, affronte des vagues d'ennemis proceduraux, collecte le loot et monte en niveau. Explore un donjon de 12 salles, avec des vagues renforcées tous les 5 niveaux.
 
 ## Controles
 | Action | Clavier | Tactile |

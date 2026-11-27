@@ -623,6 +623,7 @@ export default function App() {
       </div>
         </>
       )}
+      <div className="pointer-events-none fixed bottom-1 left-2 z-50 text-[10px] text-white/40">Créé par Geoffroy Streit (Hylst) avec l'aide d'une IA.</div>
     </div>
   );
 }
